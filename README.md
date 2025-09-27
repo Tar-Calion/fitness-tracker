@@ -1,17 +1,17 @@
 # Fitness Tracker (Electron)
 
-Lokale Desktop-App (Windows / auch andere Plattformen) zur Erfassung von Trainingsminuten:
-- Zwei Intensitäten: hart / moderat
-- Woche startet Montag
-- Ziel: 150 Minuten moderat oder 75 Minuten hart (1 hart = 2 moderat)
-- Fortschrittsbalken für aktuelle Woche
-- Rückblick der letzten 4 Wochen (moderat-Äquivalente)
-- Speicherung in einer frei wählbaren JSON/TXT-Datei (Array von Einträgen)
-- Merkt sich zuletzt gewählte Datei (in App-Config im Benutzerprofil)
-- Umschaltbarer Dark Mode (🌙 / ☀️) – Einstellung bleibt über Neustarts erhalten
+A local desktop app (Windows and other platforms) to record training minutes:
+- Two intensity levels: hard / moderate
+- Week starts on Monday
+- Goal: 150 minutes moderate or 75 minutes hard (1 hard = 2 moderate)
+- Progress bar for the current week
+- 4-week history (moderate-equivalents)
+- Stored in a user-chosen JSON/TXT file (an array of entries)
+- Remembers the last chosen file (in the app config under the user profile)
+- Toggleable Dark Mode (🌙 / ☀️) — setting persists across restarts
 
-## Datenformat
-Einträge werden als Array gespeichert:
+## Data format
+Entries are stored as an array:
 ```json
 [
   { "date": "2025-09-27", "type": "moderate", "minutes": 30 },
@@ -19,50 +19,52 @@ Einträge werden als Array gespeichert:
 ]
 ```
 
-## Nutzung
-1. Abhängigkeiten installieren
+## Usage
+1. Install dependencies
 ```bash
 npm install
 ```
-2. App starten
+2. Start the app
 ```bash
 npm start
 ```
-Windows: "Start Finess-Tracker.vbs" ausführen.
-3. Schaltfläche "Datei wählen" anklicken und bestehende oder neue (leere) .json / .txt Datei auswählen.
-4. Über Schnell-Buttons oder freies Minutenfeld Einträge hinzufügen.
-5. Optional den Dark Mode über den Button rechts im Titel (🌙/☀️) umschalten.
-6. Daten werden automatisch gespeichert.
+Windows: run "Start Fitness-Tracker.vbs".
+3. Click the "Choose file" button and select an existing or new (empty) .json / .txt file.
+4. Add entries using the quick buttons or the free minutes field.
+5. Optionally toggle Dark Mode using the button on the right of the title bar (🌙/☀️).
+6. Data is saved automatically.
 
-## Ordnerstruktur (wichtigste Dateien)
-- `main.js` – Electron Main Prozess, Fenster & Datei-/Config-IPC
-- `preload.js` – Sicherer Bridge-Layer (contextIsolation)
-- `index.html` – Oberfläche + Theme Toggle
-- `renderer.js` – UI-Logik / Rendering / Theme Handling
-- `package.json` – Projekt- und Script-Definition
+## Folder structure (key files)
+- `main.js` – Electron main process, window creation & file/config IPC
+- `preload.js` – secure bridge layer (`contextIsolation` enabled)
+- `index.html` – UI + theme toggle
+- `renderer.js` – UI logic / rendering / theme handling
+- `package.json` – project and script definitions
 
-## Sicherheitsaspekte
-- `contextIsolation: true`, kein direktes Node.js im Renderer
-- IPC nur für nötige Datei- und Theme-Funktionen
+## Security notes
+- `contextIsolation: true`, no direct Node.js access in the renderer
+- IPC is limited to necessary file and theme functions
 
 ## Packaging (optional)
-Aktuell kein Packager konfiguriert. Für ein Setup z.B. `electron-builder` hinzufügen:
+No packager is configured currently. To add a packager you can use e.g. `electron-builder`:
 ```bash
 npm install --save-dev electron-builder
 ```
-`package.json` anpassen (Beispiel):
+Adjust `package.json` (example):
 ```json
-"build": { "appId": "de.example.fitness-tracker" }
+{
+  "build": { "appId": "de.example.fitness-tracker" }
+}
 ```
-Dann:
+Then:
 ```bash
 npx electron-builder
 ```
 
-## Weiteres / Ideen
-- Lösch-/Undo-Funktion einzelner Einträge (UI Dialog)
-- Export als CSV
-- Filter für bestimmte Wochen
-- Mobile Optimierung weiter ausbauen
+## Further ideas
+- Delete / undo individual entries (with a UI dialog)
+- Export as CSV
+- Week filters
+- Improve mobile optimization
 
-Lizenz: The Unlicense (Public Domain)
+License: The Unlicense (Public Domain)
