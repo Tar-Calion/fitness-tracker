@@ -17,9 +17,11 @@
   .progress-container { width: 100%; background: #eee; height: 30px; border-radius: 6px; margin-top:0.8em; position: relative; overflow:hidden; }
   .progress-bar { height: 100%; background: orange; text-align: center; color:white; line-height: 30px; white-space: nowrap; display: inline-block; font-weight:600; }
   .progress-green { background: #0a8f24; }
-  .week-small { margin:4px 0 10px; }
-  .week-small-bar-wrapper { background:#eee; height:14px; border-radius:10px; overflow:hidden; display:inline-block; width:200px; vertical-align:middle; margin-left:8px; }
-  .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; }
+  /* Vier-Wochen Übersicht */
+  .week-small { margin:8px 0 14px; }
+  .week-label { font-weight:500; margin-bottom:4px; display:block; }
+  .week-small-bar-wrapper { background:#eee; height:14px; border-radius:10px; overflow:hidden; display:block; width:100%; max-width:600px; }
+  .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; display:block; width:0; transition:width .35s ease; }
   .week-small-bar.green { background: #0a8f24; }
   input[type="number"] { padding:10px; width:140px; margin:0.25em 6px 0.25em 0; font-size:16px; }
   #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; }

@@ -91,7 +91,7 @@ function showFourWeeks(){
     const percent = Math.min(100, (eq/150)*100);
     const green = eq >= 150;
     html += `<div class="week-small">`+
-      `Woche ab ${formatDateShort(monday)}: ${eq} äquiv.`+
+      `<span class="week-label">Woche ab ${formatDateShort(monday)}: ${eq} äquiv.</span>`+
       `<span class="week-small-bar-wrapper"><span class="week-small-bar ${green?'green':''}" style="width:${percent}%;"></span></span>`+
       `</div>`;
   }
