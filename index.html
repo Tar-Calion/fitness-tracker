@@ -5,33 +5,37 @@
 <title>Fitness Tracker</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
 <style>
+  /* Theme variables (adjusted for less glaring contrast) */
+  :root { --bg: #f6f7f9; --fg:#121314; --panel:#fcfcfd; --border:#d0d4d9; --muted:#586069; --progress-bg:#e6e8eb; }
+  body.dark { --bg:#121315; --fg:#e7e9ed; --panel:#1e1f21; --border:#3a3d42; --muted:#a5aab0; --progress-bg:#2a2d31; }
   html, body { height:100%; }
-  body { font-family: system-ui, sans-serif; padding: 0.6em 0.9em; max-width: 1100px; margin:auto; overflow-y:hidden; }
+  body { font-family: system-ui, sans-serif; padding: 0.6em 0.9em; max-width: 1100px; margin:auto; overflow-y:hidden; background:var(--bg); color:var(--fg); transition: background .25s, color .25s; }
   h1 { margin:0 0 0.4em; }
   h2 { margin: 1.0em 0 0.4em; font-size:1.15em; }
-  button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 90px; font-size:14px; touch-action: manipulation; }
+  button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 90px; font-size:14px; touch-action: manipulation; cursor:pointer; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
+  button:hover { filter:brightness(1.05); }
   .inline { display:inline-block; }
-  #fileStatus { margin: 0.4em 0 0.6em; font-size: 0.85em; color:#333; }
-  .day { display: inline-block; width: 90px; text-align: center; margin: 0.25em; vertical-align: top; background:#fafafa; border:1px solid #ddd; border-radius:6px; padding:4px 2px; font-size:12px; }
+  #fileStatus { margin: 0.4em 0 0.6em; font-size: 0.85em; color:var(--muted); }
+  .day { display: inline-block; width: 90px; text-align: center; margin: 0.25em; vertical-align: top; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:4px 2px; font-size:12px; }
   .hard { color: darkred; font-weight: 700; }
   .moderate { color: darkgreen; font-weight: 700; }
-  .progress-container { width: 100%; background: #eee; height: 22px; border-radius: 5px; margin-top:0.4em; position: relative; overflow:hidden; }
+  .progress-container { width: 100%; background: var(--progress-bg); height: 22px; border-radius: 5px; margin-top:0.4em; position: relative; overflow:hidden; }
   .progress-bar { height: 100%; background: orange; text-align: center; color:white; line-height: 22px; white-space: nowrap; display: inline-block; font-weight:600; font-size:12px; }
   .progress-green { background: #0a8f24; }
-  /* Four week compact overview (flex rows) */
   .week-small { display:flex; align-items:center; gap:10px; margin:4px 0; font-size:12px; }
   .week-label { font-weight:500; margin:0; min-width:115px; }
-  .week-small-bar-wrapper { background:#eee; height:12px; border-radius:8px; overflow:hidden; width:100%; flex:1; }
+  .week-small-bar-wrapper { background:var(--progress-bg); height:12px; border-radius:8px; overflow:hidden; width:100%; flex:1; }
   .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; display:block; width:0; transition:width .35s ease; }
   .week-small-bar.green { background: #0a8f24; }
   .week-eq { width:70px; text-align:right; font-variant-numeric: tabular-nums; }
-  input[type="number"] { padding:6px; width:110px; margin:0.25em 6px 0.25em 0; font-size:14px; }
+  input[type="number"] { padding:6px; width:110px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:4px; }
   #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; }
   .group-label { font-weight:600; width:100%; margin:4px 0 0; font-size:12px; }
-  .muted { color:#666; }
-  .footer-note { margin-top:1.2em; font-size:0.65em; color:#666; }
+  .muted { color:var(--muted); }
+  .footer-note { margin-top:1.2em; font-size:0.65em; color:var(--muted); }
   .section-inline { display:flex; flex-wrap:wrap; align-items:flex-start; }
   .week-summary-text { font-size:11px; margin-top:4px; }
+  .theme-toggle { float:right; margin-top:-0.2em; }
   @media (pointer:coarse) {
     button { font-size:16px; }
     input[type="number"] { font-size:16px; }
@@ -39,7 +43,7 @@
 </style>
 </head>
 <body>
-<h1>Fitness Tracker</h1>
+<h1>Fitness Tracker <button id="themeToggle" class="theme-toggle" title="Hell/Dunkel umschalten">🌙</button></h1>
 <div>
   <button id="chooseFileBtn">📂 Datei wählen</button>
   <button id="createFileBtn">🆕 Neue Datei</button>
@@ -62,7 +66,7 @@
 <h2>Summen letzte 4 Wochen</h2>
 <div id="fourWeeks"></div>
 
-<div class="footer-note">Daten werden lokal in der gewählten Datei gespeichert. Letzte Auswahl wird gemerkt.</div>
+<div class="footer-note">Daten werden lokal in der gewählten Datei gespeichert. Letzte Auswahl wird gemerkt. Theme-Einstellung bleibt erhalten.</div>
 
 <script src="renderer.js"></script>
 </body>

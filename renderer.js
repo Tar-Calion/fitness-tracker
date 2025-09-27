@@ -2,6 +2,7 @@
 
 let entries = []; // {date: 'YYYY-MM-DD', type: 'hard'|'moderate', minutes:Number}
 let currentFilePath = null;
+let darkMode = false;
 
 /* --------------------------- Datum & Helpers --------------------------- */
 function ymd(date){
@@ -109,6 +110,11 @@ function refresh(){
 async function initApp(){
   try {
     const res = await window.fitnessAPI.init();
+    if (res.darkMode) {
+      darkMode = true;
+      document.body.classList.add('dark');
+      updateThemeToggleIcon();
+    }
     if (res.filePath) {
       currentFilePath = res.filePath;
       entries = res.entries || [];
@@ -201,6 +207,20 @@ function setupQuickButtons(){
   });
 }
 
+/* --------------------------- Theme Handling --------------------------- */
+function updateThemeToggleIcon(){
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.textContent = darkMode ? '☀️' : '🌙';
+  btn.setAttribute('aria-label', darkMode ? 'Zu hellem Modus wechseln' : 'Zu dunklem Modus wechseln');
+}
+function toggleTheme(){
+  darkMode = !darkMode;
+  document.body.classList.toggle('dark', darkMode);
+  updateThemeToggleIcon();
+  window.fitnessAPI.setDarkMode(darkMode);
+}
+
 /* --------------------------- Event Wiring --------------------------- */
 window.addEventListener('DOMContentLoaded', () => {
   setupQuickButtons();
@@ -215,5 +235,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const val = Number(document.getElementById('customMinutes').value);
     addEntry('hard', val);
   });
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+  updateThemeToggleIcon();
   initApp();
 });

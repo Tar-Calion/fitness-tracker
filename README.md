@@ -8,6 +8,7 @@ Lokale Desktop-App (Windows / auch andere Plattformen) zur Erfassung von Trainin
 - Rückblick der letzten 4 Wochen (moderat-Äquivalente)
 - Speicherung in einer frei wählbaren JSON/TXT-Datei (Array von Einträgen)
 - Merkt sich zuletzt gewählte Datei (in App-Config im Benutzerprofil)
+- Umschaltbarer Dark Mode (🌙 / ☀️) – Einstellung bleibt über Neustarts erhalten
 
 ## Datenformat
 Einträge werden als Array gespeichert:
@@ -29,18 +30,19 @@ npm start
 ```
 3. Schaltfläche "Datei wählen" anklicken und bestehende oder neue (leere) .json / .txt Datei auswählen.
 4. Über Schnell-Buttons oder freies Minutenfeld Einträge hinzufügen.
-5. Daten werden automatisch gespeichert.
+5. Optional den Dark Mode über den Button rechts im Titel (🌙/☀️) umschalten.
+6. Daten werden automatisch gespeichert.
 
 ## Ordnerstruktur (wichtigste Dateien)
-- `main.js` – Electron Main Prozess, Fenster & Datei-IPC
+- `main.js` – Electron Main Prozess, Fenster & Datei-/Config-IPC
 - `preload.js` – Sicherer Bridge-Layer (contextIsolation)
-- `index.html` – Oberfläche
-- `renderer.js` – UI-Logik / Rendering
+- `index.html` – Oberfläche + Theme Toggle
+- `renderer.js` – UI-Logik / Rendering / Theme Handling
 - `package.json` – Projekt- und Script-Definition
 
 ## Sicherheitsaspekte
 - `contextIsolation: true`, kein direktes Node.js im Renderer
-- IPC nur für nötige Dateifunktionen
+- IPC nur für nötige Datei- und Theme-Funktionen
 
 ## Packaging (optional)
 Aktuell kein Packager konfiguriert. Für ein Setup z.B. `electron-builder` hinzufügen:

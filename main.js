@@ -72,9 +72,9 @@ ipcMain.handle('init', async () => {
   if (cfg.lastFilePath && fs.existsSync(cfg.lastFilePath)) {
     currentFilePath = cfg.lastFilePath;
     const entries = readEntries(currentFilePath);
-    return { filePath: currentFilePath, entries, restored: true };
+    return { filePath: currentFilePath, entries, restored: true, darkMode: !!cfg.darkMode };
   }
-  return { filePath: null, entries: [], restored: false };
+  return { filePath: null, entries: [], restored: false, darkMode: !!cfg.darkMode };
 });
 
 ipcMain.handle('choose-file', async () => {
@@ -101,6 +101,16 @@ ipcMain.handle('save-entries', async (_e, entries) => {
 });
 
 ipcMain.handle('get-current-file', () => ({ filePath: currentFilePath }));
+
+// Persist Dark Mode setting
+ipcMain.handle('set-dark-mode', (_e, enabled) => {
+  const cfg = loadConfig();
+  cfg.darkMode = !!enabled;
+  // preserve lastFilePath if present
+  if (currentFilePath) cfg.lastFilePath = currentFilePath;
+  saveConfig(cfg);
+  return { darkMode: cfg.darkMode };
+});
 
 ipcMain.handle('create-file', async () => {
   const result = await dialog.showSaveDialog({
