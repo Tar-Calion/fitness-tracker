@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Fitness Tracker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<style>
+  body { font-family: system-ui, sans-serif; padding: 1em; max-width: 1100px; margin:auto; }
+  h1 { margin-top:0; }
+  h2 { margin-top: 1.6em; }
+  button { margin: 0.25em; padding: 0.8em 1em; min-width: 110px; font-size:16px; touch-action: manipulation; }
+  .inline { display:inline-block; }
+  #fileStatus { margin: 0.6em 0 1em; font-size: 0.95em; color:#333; }
+  .day { display: inline-block; width: 120px; text-align: center; margin: 0.35em; vertical-align: top; background:#fafafa; border:1px solid #ddd; border-radius:8px; padding:6px 4px; }
+  .hard { color: darkred; font-weight: 700; }
+  .moderate { color: darkgreen; font-weight: 700; }
+  .progress-container { width: 100%; background: #eee; height: 30px; border-radius: 6px; margin-top:0.8em; position: relative; overflow:hidden; }
+  .progress-bar { height: 100%; background: orange; text-align: center; color:white; line-height: 30px; white-space: nowrap; display: inline-block; font-weight:600; }
+  .progress-green { background: #0a8f24; }
+  .week-small { margin:4px 0 10px; }
+  .week-small-bar-wrapper { background:#eee; height:14px; border-radius:10px; overflow:hidden; display:inline-block; width:200px; vertical-align:middle; margin-left:8px; }
+  .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; }
+  .week-small-bar.green { background: #0a8f24; }
+  input[type="number"] { padding:10px; width:140px; margin:0.25em 6px 0.25em 0; font-size:16px; }
+  #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; }
+  .group-label { font-weight:600; width:100%; margin:4px 0 2px; }
+  .muted { color:#666; }
+  .footer-note { margin-top:2.5em; font-size:0.8em; color:#666; }
+  @media (pointer:coarse) {
+    button { font-size:18px; }
+    input[type="number"] { font-size:18px; }
+  }
+</style>
+</head>
+<body>
+<h1>Fitness Tracker</h1>
+<div>
+  <button id="chooseFileBtn">📂 Datei wählen</button>
+  <button id="createFileBtn">🆕 Neue Datei</button>
+  <button id="reloadBtn" title="Datei neu laden">🔄 Neu laden</button>
+  <span id="fileStatus">Keine Datei gewählt.</span>
+</div>
+
+<h2>Eingabe heute</h2>
+<div id="quickButtons"></div>
+<div style="margin-top:6px;">
+  <input type="number" id="customMinutes" placeholder="Minuten" inputmode="numeric" min="1" />
+  <button id="addModerate">+ Moderat</button>
+  <button id="addHard">+ Hart</button>
+</div>
+
+<h2>Aktuelle Woche</h2>
+<div id="weekView"></div>
+<div id="weekProgress"></div>
+
+<h2>Summen letzte 4 Wochen</h2>
+<div id="fourWeeks"></div>
+
+<div class="footer-note">Daten werden lokal in der gewählten Datei gespeichert. Letzte Auswahl wird gemerkt.</div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

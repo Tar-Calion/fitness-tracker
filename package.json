@@ -1,0 +1,17 @@
+{
+  "name": "fitness-tracker",
+  "version": "1.0.0",
+  "description": "Lokale Fitness Tracking Desktop App (Electron) für hart/moderat Trainingsminuten.",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "electron . --enable-logging",
+    "package-info": "echo Konsolen-App, Packaging optional"
+  },
+  "devDependencies": {
+    "electron": "^31.2.0"
+  }
+}
+
