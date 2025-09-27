@@ -28,6 +28,7 @@ npm install
 ```bash
 npm start
 ```
+Windows: "Start Finess-Tracker.vbs" ausführen.
 3. Schaltfläche "Datei wählen" anklicken und bestehende oder neue (leere) .json / .txt Datei auswählen.
 4. Über Schnell-Buttons oder freies Minutenfeld Einträge hinzufügen.
 5. Optional den Dark Mode über den Button rechts im Titel (🌙/☀️) umschalten.
