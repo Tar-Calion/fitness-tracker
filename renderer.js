@@ -73,7 +73,7 @@ function showWeek(){
         <div class="progress-container" aria-label="Wochenfortschritt">
       <div class="${barClass}" style="width:${capped}%">${Math.round(percent)}%</div>
     </div>
-    <div style="margin-top:8px;">Woche: ${weekHard} hart, ${weekMod} moderat, ${totalEq} moderat äquiv. (Ziel: 75 hart oder 150 moderat)</div>`;
+    <div class="week-summary-text">${weekHard}H + ${weekMod}M = ${totalEq} eq (Ziel 150)</div>`;
   weekViewEl.innerHTML = html;
   weekProgressEl.innerHTML = progressHtml;
 }
@@ -90,9 +90,10 @@ function showFourWeeks(){
     const eq = mod + hard*2;
     const percent = Math.min(100, (eq/150)*100);
     const green = eq >= 150;
-    html += `<div class="week-small">`+
-      `<span class="week-label">Woche ab ${formatDateShort(monday)}: ${eq} äquiv.</span>`+
+    html += `<div class="week-small" title="Woche ab ${formatDateShort(monday)}: ${eq} eq">`+
+      `<span class="week-label">${formatDateShort(monday)}</span>`+
       `<span class="week-small-bar-wrapper"><span class="week-small-bar ${green?'green':''}" style="width:${percent}%;"></span></span>`+
+      `<span class="week-eq">${eq}</span>`+
       `</div>`;
   }
   fourWeeksEl.innerHTML = html;
