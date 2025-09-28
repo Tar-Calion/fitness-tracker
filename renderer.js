@@ -50,6 +50,7 @@ function formatDateShort(d){
 
 function showWeek(){
   const today = new Date();
+  const todayStr = ymd(today);
   const monday = startOfWeek(today);
   let html = '';
   for (let i=0;i<7;i++) {
@@ -60,9 +61,10 @@ function showWeek(){
     const dayEntries = entries.filter(e=>e.date===ds);
     const hard = dayEntries.filter(e=>e.type==='hard').reduce((s,e)=>s+Number(e.minutes),0);
     const mod  = dayEntries.filter(e=>e.type==='moderate').reduce((s,e)=>s+Number(e.minutes),0);
-    html += `<div class="day"><b>${dayName}<br>${formatDateShort(d)}</b><br>`+
-            `<span class="hard">${hard}H</span><br>`+
-            `<span class="moderate">${mod}M</span></div>`;
+    const isToday = ds === todayStr;
+    html += `<div class="day${isToday?' today':''}"><b>${dayName}<br>${formatDateShort(d)}</b><br>`+
+            `<span class="hard">${hard} min. hart</span><br>`+
+            `<span class="moderate">${mod} min. moderat</span></div>`;
   }
   const weekHard = entries.filter(e=>isInSameWeek(e.date,today) && e.type==='hard').reduce((s,e)=>s+Number(e.minutes),0);
   const weekMod  = entries.filter(e=>isInSameWeek(e.date,today) && e.type==='moderate').reduce((s,e)=>s+Number(e.minutes),0);
@@ -74,7 +76,7 @@ function showWeek(){
         <div class="progress-container" aria-label="Wochenfortschritt">
       <div class="${barClass}" style="width:${capped}%">${Math.round(percent)}%</div>
     </div>
-    <div class="week-summary-text">${weekHard}H + ${weekMod}M = ${totalEq} eq (Ziel 150)</div>`;
+    <div class="week-summary-text">Ziel: 150 equiv-Minuten (150 min. moderat bzw. 75 min. hart). Bereits geleistet: ${totalEq} equiv-Minuten (${weekMod} min. moderat und ${weekHard} min. hart).</div>`;
   weekViewEl.innerHTML = html;
   weekProgressEl.innerHTML = progressHtml;
 }
@@ -193,7 +195,8 @@ function setupQuickButtons(){
   quickContainer.appendChild(groupModLabel);
   standardMinutes.forEach(m=>{
     const btn = document.createElement('button');
-    btn.textContent = `${m} M`;
+    btn.classList.add('quick-btn');
+    btn.textContent = `${m} min. moderat`;
     btn.addEventListener('click', ()=>addEntry('moderate', m));
     quickContainer.appendChild(btn);
   });
@@ -201,7 +204,8 @@ function setupQuickButtons(){
   quickContainer.appendChild(groupHardLabel);
   standardMinutes.forEach(m=>{
     const btn = document.createElement('button');
-    btn.textContent = `${m} H`;
+    btn.classList.add('quick-btn');
+    btn.textContent = `${m} min. hart`;
     btn.addEventListener('click', ()=>addEntry('hard', m));
     quickContainer.appendChild(btn);
   });

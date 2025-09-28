@@ -13,10 +13,16 @@
   h1 { margin:0 0 0.4em; }
   h2 { margin: 1.0em 0 0.4em; font-size:1.15em; }
   button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 90px; font-size:14px; touch-action: manipulation; cursor:pointer; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
+  /* Einheitliche Breite für Schnell-Buttons */
+  #quickButtons button.quick-btn { width:140px; flex:0 0 140px; }
+  #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; max-width:100%; }
   button:hover { filter:brightness(1.05); }
   .inline { display:inline-block; }
   #fileStatus { margin: 0.4em 0 0.6em; font-size: 0.85em; color:var(--muted); }
-  .day { display: inline-block; width: 90px; text-align: center; margin: 0.25em; vertical-align: top; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:4px 2px; font-size:12px; }
+  .day { display: inline-block; width: 120px; text-align: center; margin: 0.25em; vertical-align: top; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:6px 4px; font-size:12px; min-height:80px; box-sizing:border-box; }
+  /* Highlight for current day */
+  .day.today { background:#fff4cc; border-color:#d8aa1e; box-shadow:0 0 0 2px #f6d375 inset; }
+  body.dark .day.today { background:#3a300d; border-color:#c2981c; box-shadow:0 0 0 2px #5a4a16 inset; }
   .hard { color: darkred; font-weight: 700; }
   .moderate { color: darkgreen; font-weight: 700; }
   .progress-container { width: 100%; background: var(--progress-bg); height: 22px; border-radius: 5px; margin-top:0.4em; position: relative; overflow:hidden; }
@@ -28,8 +34,7 @@
   .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; display:block; width:0; transition:width .35s ease; }
   .week-small-bar.green { background: #0a8f24; }
   .week-eq { width:70px; text-align:right; font-variant-numeric: tabular-nums; }
-  input[type="number"] { padding:6px; width:110px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:4px; }
-  #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; }
+  input[type="number"] { padding:6px; width:70px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:4px; }
   .group-label { font-weight:600; width:100%; margin:4px 0 0; font-size:12px; }
   .muted { color:var(--muted); }
   .footer-note { margin-top:1.2em; font-size:0.65em; color:var(--muted); }
@@ -38,6 +43,7 @@
   .theme-toggle { float:right; margin-top:-0.2em; }
   @media (pointer:coarse) {
     button { font-size:16px; }
+    #quickButtons button.quick-btn { width:150px; flex:0 0 150px; }
     input[type="number"] { font-size:16px; }
   }
 </style>
