@@ -2,13 +2,17 @@
 
 A local desktop app (Windows and other platforms) to record training minutes:
 - Two intensity levels: hard / moderate
-- Week starts on Monday
-- Goal: 150 minutes moderate or 75 minutes hard (1 hard = 2 moderate)
+- Goal: 150 minutes moderate or 75 minutes hard (1 hard = 2 moderate) per week
+- Quick buttons for common durations (5, 10, 15, 20, 30, 45 minutes)
 - Progress bar for the current week
 - 4-week history (moderate-equivalents)
 - Stored in a user-chosen JSON/TXT file (an array of entries)
 - Remembers the last chosen file (in the app config under the user profile)
 - Toggleable Dark Mode (🌙 / ☀️) — setting persists across restarts
+
+## Screenshot
+![Screenshot](screenshot.png)
+
 
 ## Data format
 Entries are stored as an array:
@@ -63,8 +67,7 @@ npx electron-builder
 
 ## Further ideas
 - Delete / undo individual entries (with a UI dialog)
-- Export as CSV
-- Week filters
-- Improve mobile optimization
+- Internationalization
+- Optimize for smaller windows
 
 License: The Unlicense (Public Domain)
