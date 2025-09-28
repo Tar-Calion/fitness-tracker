@@ -88,13 +88,15 @@ function showFourWeeks(){
     const ref = new Date(today);
     ref.setDate(ref.getDate() - 7*w);
     const monday = startOfWeek(ref);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate()+6);
     const hard = entries.filter(e=>isInSameWeek(e.date,ref) && e.type==='hard').reduce((s,e)=>s+Number(e.minutes),0);
     const mod  = entries.filter(e=>isInSameWeek(e.date,ref) && e.type==='moderate').reduce((s,e)=>s+Number(e.minutes),0);
     const eq = mod + hard*2;
     const percent = Math.min(100, (eq/150)*100);
     const green = eq >= 150;
-    html += `<div class="week-small" title="Woche ab ${formatDateShort(monday)}: ${eq} eq">`+
-      `<span class="week-label">${formatDateShort(monday)}</span>`+
+    html += `<div class="week-small" title="Woche ${formatDateShort(monday)} - ${formatDateShort(sunday)}: ${eq} eq">`+
+      `<span class="week-label">${formatDateShort(monday)} - ${formatDateShort(sunday)}</span>`+
       `<span class="week-small-bar-wrapper"><span class="week-small-bar ${green?'green':''}" style="width:${percent}%;"></span></span>`+
       `<span class="week-eq">${eq}</span>`+
       `</div>`;
