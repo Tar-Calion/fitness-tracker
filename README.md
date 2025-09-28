@@ -33,10 +33,10 @@ npm install
 npm start
 ```
 Windows: run "Start Fitness-Tracker.vbs".
+
 3. Click the "Choose file" button and select an existing or new (empty) .json / .txt file.
 4. Add entries using the quick buttons or the free minutes field.
-5. Optionally toggle Dark Mode using the button on the right of the title bar (🌙/☀️).
-6. Data is saved automatically.
+5. Data is saved automatically.
 
 ## Folder structure (key files)
 - `main.js` – Electron main process, window creation & file/config IPC
