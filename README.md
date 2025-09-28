@@ -69,5 +69,6 @@ npx electron-builder
 - Delete / undo individual entries (with a UI dialog)
 - Internationalization
 - Optimize for smaller windows
+- Configurable intensity levels and goals
 
 License: The Unlicense (Public Domain)
