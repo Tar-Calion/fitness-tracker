@@ -9,6 +9,7 @@ A local desktop app (Windows and other platforms) to record training minutes:
 - Stored in a user-chosen JSON/TXT file (an array of entries)
 - Remembers the last chosen file (in the app config under the user profile)
 - Toggleable Dark Mode (🌙 / ☀️) — setting persists across restarts
+- Automatic refresh shortly after midnight (the new Monday week starts automatically, and the "today" marker advances without manual reload)
 
 ## Screenshot
 ![Screenshot](screenshot.png)

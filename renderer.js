@@ -110,6 +110,25 @@ function refresh(){
   showFourWeeks();
 }
 
+/* --------------------------- Automatische Aktualisierung --------------------------- */
+// Aktualisiert die Ansicht jeden Tag kurz nach Mitternacht, damit:
+// - Am Montag automatisch die neue Woche angezeigt wird (ohne Benutzeraktion)
+// - Die "Heute"-Markierung bei Tageswechsel korrekt springt
+let dailyRefreshTimer = null;
+function scheduleDailyRefresh(){
+  if (dailyRefreshTimer) clearTimeout(dailyRefreshTimer);
+  const now = new Date();
+  const next = new Date(now);
+  // Nächster Tag 00:00:05 (kleiner Puffer von 5 Sekunden, falls System zur Sekunde 0 noch beschäftigt)
+  next.setDate(now.getDate()+1);
+  next.setHours(0,0,5,0);
+  const diff = Math.max(1000, next.getTime() - now.getTime());
+  dailyRefreshTimer = setTimeout(()=>{
+    try { refresh(); } catch(e){ console.warn('Geplanter Refresh fehlgeschlagen', e); }
+    scheduleDailyRefresh(); // erneut planen
+  }, diff);
+}
+
 /* --------------------------- Datei Handling (IPC) --------------------------- */
 async function initApp(){
   try {
@@ -245,4 +264,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
   updateThemeToggleIcon();
   initApp();
+  scheduleDailyRefresh(); // Tägliche Aktualisierung starten
+  window.addEventListener('focus', refresh); // Bei Rückkehr ins Fenster ebenfalls aktualisieren
 });
