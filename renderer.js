@@ -209,24 +209,28 @@ function setupQuickButtons(){
   const quickContainer = document.getElementById('quickButtons');
   quickContainer.innerHTML='';
   const standardMinutes = [5,10,15,20,30,45];
-  const groupHardLabel = document.createElement('div'); groupHardLabel.textContent='Hart'; groupHardLabel.className='group-label';
+  // Labels
   const groupModLabel = document.createElement('div'); groupModLabel.textContent='Moderat'; groupModLabel.className='group-label';
-
-  // Moderat zuerst
   quickContainer.appendChild(groupModLabel);
   standardMinutes.forEach(m=>{
     const btn = document.createElement('button');
     btn.classList.add('quick-btn');
-    btn.textContent = `${m} min. moderat`;
+    btn.textContent = `+${m} Min.`; // Nur Minutentext
+    btn.title = `${m} Minuten moderat hinzufügen`;
     btn.addEventListener('click', ()=>addEntry('moderate', m));
     quickContainer.appendChild(btn);
   });
   // Hart
+  const groupHardLabel = document.createElement('div'); groupHardLabel.textContent='Hart'; groupHardLabel.className='group-label';
+  // Zeilenumbruch erzwingen zwischen den Gruppen: flex-basis 100%
+  const lineBreak = document.createElement('div'); lineBreak.style.flexBasis='100%'; lineBreak.style.height='0';
+  quickContainer.appendChild(lineBreak);
   quickContainer.appendChild(groupHardLabel);
   standardMinutes.forEach(m=>{
     const btn = document.createElement('button');
     btn.classList.add('quick-btn');
-    btn.textContent = `${m} min. hart`;
+    btn.textContent = `+${m} Min.`;
+    btn.title = `${m} Minuten hart hinzufügen`;
     btn.addEventListener('click', ()=>addEntry('hard', m));
     quickContainer.appendChild(btn);
   });
