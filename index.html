@@ -13,7 +13,7 @@
   h1 { margin:0 0 0.4em; }
   h2 { margin: 1.0em 0 0.4em; font-size:1.15em; }
   button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 90px; font-size:14px; touch-action: manipulation; cursor:pointer; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
-  /* Einheitliche Breite für Schnell-Buttons */
+  /* Uniform width for quick buttons */
   #quickButtons button.quick-btn { width:140px; flex:0 0 140px; }
   #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; max-width:100%; }
   button:hover { filter:brightness(1.05); }
@@ -35,7 +35,7 @@
   .week-small-bar.green { background: #0a8f24; }
   .week-eq { width:70px; text-align:right; font-variant-numeric: tabular-nums; }
   input[type="number"] { padding:6px; width:70px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:4px; }
-  .group-label { font-weight:600; /* vorher width:100%; entfernt */ width:auto; margin:4px 8px 0 0; font-size:12px; flex:0 0 auto; }
+  .group-label { font-weight:700; width:140px; flex:0 0 140px; margin:0.25em; font-size:17px; text-align:center; letter-spacing:0.5px; }
   .muted { color:var(--muted); }
   .footer-note { margin-top:1.2em; font-size:0.65em; color:var(--muted); }
   .section-inline { display:flex; flex-wrap:wrap; align-items:flex-start; }
@@ -44,6 +44,7 @@
   @media (pointer:coarse) {
     button { font-size:16px; }
     #quickButtons button.quick-btn { width:150px; flex:0 0 150px; }
+    .group-label { width:150px; flex:0 0 150px; font-size:17px; margin:0.25em; }
     input[type="number"] { font-size:16px; }
   }
 </style>
