@@ -3,7 +3,7 @@
 A local desktop app (Windows and other platforms) to record training minutes:
 - Two intensity levels: hard / moderate
 - Goal: 150 minutes moderate or 75 minutes hard (1 hard = 2 moderate) per week
-- Quick buttons for common durations (5, 10, 15, 20, 30, 45 minutes)
+- Quick buttons for common durations (5, 10, 15, 20, 30, 45, 60 minutes)
 - Progress bar for the current week
 - 4-week history (moderate-equivalents)
 - Stored in a user-chosen JSON/TXT file (an array of entries)

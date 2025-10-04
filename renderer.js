@@ -208,7 +208,7 @@ function addEntry(type, minutes){
 function setupQuickButtons(){
   const quickContainer = document.getElementById('quickButtons');
   quickContainer.innerHTML='';
-  const standardMinutes = [5,10,15,20,30,45];
+  const standardMinutes = [5,10,15,20,30,45,60];
   // Labels
   const groupModLabel = document.createElement('div'); groupModLabel.textContent='Moderat'; groupModLabel.className='group-label';
   quickContainer.appendChild(groupModLabel);
