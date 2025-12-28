@@ -128,10 +128,10 @@ function drawBarChart(){
   // Colors based on theme
   const isDark = document.body.classList.contains('dark');
   const textColor = isDark ? '#e7e9ed' : '#121314';
-  const gridColor = isDark ? '#3a3d42' : '#d0d4d9';
+  const gridColor = isDark ? '#505659' : '#d0d4d9';
   const barColor = isDark ? '#ff9800' : '#ff9800';
   const barGreenColor = '#0a8f24';
-  const goalLineColor = isDark ? '#c2981c' : '#d8aa1e';
+  const goalLineColor = isDark ? '#ffc857' : '#d8aa1e';
   
   // Clear canvas
   ctx.clearRect(0, 0, width, height);
@@ -356,6 +356,7 @@ function toggleTheme(){
   darkMode = !darkMode;
   document.body.classList.toggle('dark', darkMode);
   updateThemeToggleIcon();
+  drawBarChart(); // Redraw chart with new theme colors
   window.fitnessAPI.setDarkMode(darkMode);
 }
 
