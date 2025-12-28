@@ -41,7 +41,7 @@ function sanitizeEntries(){
 const fileStatusEl = document.getElementById('fileStatus');
 const weekViewEl = document.getElementById('weekView');
 const weekProgressEl = document.getElementById('weekProgress');
-const fourWeeksEl = document.getElementById('fourWeeks');
+const barChartEl = document.getElementById('barChart');
 
 /* --------------------------- Rendering --------------------------- */
 function formatDateShort(d){
@@ -81,33 +81,142 @@ function showWeek(){
   weekProgressEl.innerHTML = progressHtml;
 }
 
-function showFourWeeks(){
+function drawBarChart(){
+  if (!barChartEl) return;
+  const canvas = barChartEl;
+  const ctx = canvas.getContext('2d');
+  const container = canvas.parentElement;
+  
+  // Set canvas size to match container (auto-adjust to remaining window size)
+  const rect = container.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(dpr, dpr);
+  
+  const width = rect.width;
+  const height = rect.height;
+  
+  // Collect data for last 15 weeks
   const today = new Date();
-  let html = '';
-  for (let w=0; w<4; w++) {
+  const weeksData = [];
+  for (let w = 14; w >= 0; w--) {
     const ref = new Date(today);
     ref.setDate(ref.getDate() - 7*w);
     const monday = startOfWeek(ref);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate()+6);
     const hard = entries.filter(e=>isInSameWeek(e.date,ref) && e.type==='hard').reduce((s,e)=>s+Number(e.minutes),0);
     const mod  = entries.filter(e=>isInSameWeek(e.date,ref) && e.type==='moderate').reduce((s,e)=>s+Number(e.minutes),0);
     const eq = mod + hard*2;
-    const percent = Math.min(100, (eq/150)*100);
-    const green = eq >= 150;
-    html += `<div class="week-small" title="Woche ${formatDateShort(monday)} - ${formatDateShort(sunday)}: ${eq} eq">`+
-      `<span class="week-label">${formatDateShort(monday)} - ${formatDateShort(sunday)}</span>`+
-      `<span class="week-small-bar-wrapper"><span class="week-small-bar ${green?'green':''}" style="width:${percent}%;"></span></span>`+
-      `<span class="week-eq">${eq}</span>`+
-      `</div>`;
+    weeksData.push({ monday, eq });
   }
-  fourWeeksEl.innerHTML = html;
+  
+  // Chart dimensions
+  const padding = { left: 50, right: 20, top: 30, bottom: 60 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+  
+  // Determine max value for scaling
+  const maxEq = Math.max(...weeksData.map(w => w.eq), 150); // At least show goal line
+  const yScale = chartHeight / maxEq;
+  
+  // Bar width
+  const barWidth = Math.max(8, chartWidth / weeksData.length - 4);
+  const barSpacing = chartWidth / weeksData.length;
+  
+  // Colors based on theme
+  const isDark = document.body.classList.contains('dark');
+  const textColor = isDark ? '#e7e9ed' : '#121314';
+  const gridColor = isDark ? '#3a3d42' : '#d0d4d9';
+  const barColor = isDark ? '#ff9800' : '#ff9800';
+  const barGreenColor = '#0a8f24';
+  const goalLineColor = isDark ? '#c2981c' : '#d8aa1e';
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw grid lines (every 50 minutes)
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 1;
+  ctx.font = '11px system-ui, sans-serif';
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= maxEq; i += 50) {
+    const y = padding.top + chartHeight - (i * yScale);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+    ctx.fillText(i.toString(), padding.left - 5, y + 4);
+  }
+  
+  // Draw goal line at 150
+  if (maxEq >= 150) {
+    const goalY = padding.top + chartHeight - (150 * yScale);
+    ctx.strokeStyle = goalLineColor;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, goalY);
+    ctx.lineTo(width - padding.right, goalY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Goal label
+    ctx.fillStyle = goalLineColor;
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.fillText('Ziel: 150', width - padding.right - 60, goalY - 5);
+  }
+  
+  // Draw bars
+  weeksData.forEach((week, i) => {
+    const x = padding.left + i * barSpacing + (barSpacing - barWidth) / 2;
+    const barHeight = week.eq * yScale;
+    const y = padding.top + chartHeight - barHeight;
+    
+    // Bar color (green if >= 150, orange otherwise)
+    ctx.fillStyle = week.eq >= 150 ? barGreenColor : barColor;
+    ctx.fillRect(x, y, barWidth, barHeight);
+    
+    // Week label (date)
+    ctx.save();
+    ctx.translate(x + barWidth / 2, height - padding.bottom + 15);
+    ctx.rotate(-Math.PI / 4);
+    ctx.fillStyle = textColor;
+    ctx.font = '10px system-ui, sans-serif';
+    ctx.textAlign = 'right';
+    const dateStr = week.monday.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    ctx.fillText(dateStr, 0, 0);
+    ctx.restore();
+    
+    // Value on top of bar (if bar is tall enough)
+    if (barHeight > 15) {
+      ctx.fillStyle = textColor;
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(week.eq.toString(), x + barWidth / 2, y - 3);
+    }
+  });
+  
+  // Axis labels
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 12px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Zeit (Wochen)', width / 2, height - 5);
+  
+  ctx.save();
+  ctx.translate(15, height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Äquivalente Minuten', 0, 0);
+  ctx.restore();
 }
 
 function refresh(){
   sanitizeEntries();
   showWeek();
-  showFourWeeks();
+  drawBarChart();
 }
 
 /* --------------------------- Automatische Aktualisierung --------------------------- */
@@ -270,4 +379,5 @@ window.addEventListener('DOMContentLoaded', () => {
   initApp();
   scheduleDailyRefresh(); // Tägliche Aktualisierung starten
   window.addEventListener('focus', refresh); // Bei Rückkehr ins Fenster ebenfalls aktualisieren
+  window.addEventListener('resize', drawBarChart); // Redraw chart on window resize
 });
