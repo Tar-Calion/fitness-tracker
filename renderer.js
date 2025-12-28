@@ -122,7 +122,7 @@ function drawBarChart(){
   const yScale = chartHeight / maxEq;
   
   // Bar width
-  const barWidth = Math.max(8, chartWidth / weeksData.length - 4);
+  const barWidth = Math.max(8, chartWidth / weeksData.length - 15);
   const barSpacing = chartWidth / weeksData.length;
   
   // Colors based on theme
@@ -151,9 +151,10 @@ function drawBarChart(){
     ctx.fillText(i.toString(), padding.left - 5, y + 4);
   }
   
-  // Draw goal line at 150
+  // Draw goal line at 150 (line only, label drawn later on top)
+  let goalY = null;
   if (maxEq >= 150) {
-    const goalY = padding.top + chartHeight - (150 * yScale);
+    goalY = padding.top + chartHeight - (150 * yScale);
     ctx.strokeStyle = goalLineColor;
     ctx.lineWidth = 2;
     ctx.setLineDash([5, 3]);
@@ -162,12 +163,6 @@ function drawBarChart(){
     ctx.lineTo(width - padding.right, goalY);
     ctx.stroke();
     ctx.setLineDash([]);
-    
-    // Goal label
-    ctx.fillStyle = goalLineColor;
-    ctx.textAlign = 'left';
-    ctx.font = 'bold 11px system-ui, sans-serif';
-    ctx.fillText('Ziel: 150', width - padding.right - 60, goalY - 5);
   }
   
   // Draw bars
@@ -199,6 +194,14 @@ function drawBarChart(){
       ctx.fillText(week.eq.toString(), x + barWidth / 2, y - 3);
     }
   });
+  
+  // Draw goal line label on top (after bars)
+  if (goalY !== null) {
+    ctx.fillStyle = goalLineColor;
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 11px system-ui, sans-serif';
+    ctx.fillText('Ziel: 150', width - padding.right - 30, goalY - 5);
+  }
   
   // Axis labels
   ctx.fillStyle = textColor;
