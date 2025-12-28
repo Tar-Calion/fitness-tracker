@@ -15,7 +15,7 @@
   button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 80px; font-size:14px; touch-action: manipulation; cursor:pointer; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
   /* Uniform width for quick buttons */
   #quickButtons button.quick-btn { width:80px; flex:0 0 80px; }
-  #quickButtons { display:flex; flex-wrap:wrap; align-items:flex-start; max-width:100%; }
+  #quickButtons { display:flex; flex-wrap:wrap; align-items:center; max-width:100%; }
   button:hover { filter:brightness(1.05); }
   .inline { display:inline-block; }
   #fileStatus { margin: 0.4em 0 0.6em; font-size: 0.85em; color:var(--muted); }
@@ -34,7 +34,9 @@
   .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; display:block; width:0; transition:width .35s ease; }
   .week-small-bar.green { background: #0a8f24; }
   .week-eq { width:70px; text-align:right; font-variant-numeric: tabular-nums; }
-  input[type="number"] { padding:6px; width:70px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:4px; }
+  input[type="number"] { box-sizing:border-box; padding: 0.55em 0.8em; width:70px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
+  /* Visual separation for custom inputs/buttons at end of each row */
+  .custom-controls { display:flex; align-items:center; gap:6px; margin:0.25em; padding-left:10px; border-left:2px solid var(--border); align-self:center; }
   .group-label { font-weight:700; width:140px; flex:0 0 140px; margin:0.25em; font-size:17px; text-align:center; letter-spacing:0.5px; }
   .muted { color:var(--muted); }
   .footer-note { margin-top:1.2em; font-size:0.65em; color:var(--muted); }
@@ -56,11 +58,6 @@
 
 <h2>Eingabe heute</h2>
 <div id="quickButtons"></div>
-<div style="margin-top:4px;">
-  <input type="number" id="customMinutes" placeholder="Minuten" inputmode="numeric" min="1" />
-  <button id="addModerate">+ Moderat</button>
-  <button id="addHard">+ Hart</button>
-</div>
 
 <h2>Aktuelle Woche</h2>
 <div id="weekView"></div>

@@ -32,7 +32,7 @@ Electron main process owns all filesystem interactions. Renderer communicates ex
 
 Renderer workflow:
 1. On load: call `init` IPC -> attempts to restore last-used file.
-2. User adds minutes via buttons -> push entry into local array -> call `save-entries`.
+2. User adds minutes via quick buttons or via the inline custom input at the end of each intensity row -> push entry into local array -> call `save-entries`.
 3. Recompute weekly aggregates and redraw the 15-week bar chart -> re-render.
 
 ## 5. Data Model

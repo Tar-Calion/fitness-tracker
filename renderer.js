@@ -314,7 +314,6 @@ function addEntry(type, minutes){
   sanitizeEntries();
   saveEntries();
   refresh();
-  document.getElementById('customMinutes').value='';
 }
 
 function setupQuickButtons(){
@@ -332,6 +331,27 @@ function setupQuickButtons(){
     btn.addEventListener('click', ()=>addEntry('moderate', m));
     quickContainer.appendChild(btn);
   });
+  // Custom input + add button for Moderate at end of row (visually separated)
+  const modControls = document.createElement('div');
+  modControls.className = 'custom-controls';
+  const modInput = document.createElement('input');
+  modInput.type = 'number';
+  modInput.id = 'customMinutesModerate';
+  modInput.placeholder = 'Min.';
+  modInput.inputMode = 'numeric';
+  modInput.min = '1';
+  modControls.appendChild(modInput);
+  const addModBtn = document.createElement('button');
+  addModBtn.id = 'addModerate';
+  addModBtn.textContent = '+ Moderat';
+  addModBtn.title = 'Eigene Minuten moderat hinzufügen';
+  addModBtn.addEventListener('click', ()=>{
+    const val = Number(document.getElementById('customMinutesModerate').value);
+    addEntry('moderate', val);
+    document.getElementById('customMinutesModerate').value='';
+  });
+  modControls.appendChild(addModBtn);
+  quickContainer.appendChild(modControls);
   // Hart
   const groupHardLabel = document.createElement('div'); groupHardLabel.textContent='Hart'; groupHardLabel.className='group-label';
   // Zeilenumbruch erzwingen zwischen den Gruppen: flex-basis 100%
@@ -346,6 +366,27 @@ function setupQuickButtons(){
     btn.addEventListener('click', ()=>addEntry('hard', m));
     quickContainer.appendChild(btn);
   });
+  // Custom input + add button for Hard at end of row (visually separated)
+  const hardControls = document.createElement('div');
+  hardControls.className = 'custom-controls';
+  const hardInput = document.createElement('input');
+  hardInput.type = 'number';
+  hardInput.id = 'customMinutesHard';
+  hardInput.placeholder = 'Min.';
+  hardInput.inputMode = 'numeric';
+  hardInput.min = '1';
+  hardControls.appendChild(hardInput);
+  const addHardBtn = document.createElement('button');
+  addHardBtn.id = 'addHard';
+  addHardBtn.textContent = '+ Hart';
+  addHardBtn.title = 'Eigene Minuten hart hinzufügen';
+  addHardBtn.addEventListener('click', ()=>{
+    const val = Number(document.getElementById('customMinutesHard').value);
+    addEntry('hard', val);
+    document.getElementById('customMinutesHard').value='';
+  });
+  hardControls.appendChild(addHardBtn);
+  quickContainer.appendChild(hardControls);
 }
 
 /* --------------------------- Theme Handling --------------------------- */
@@ -369,14 +410,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('chooseFileBtn').addEventListener('click', chooseFile);
   document.getElementById('createFileBtn').addEventListener('click', createNewFile);
   document.getElementById('reloadBtn').addEventListener('click', reloadFile);
-  document.getElementById('addModerate').addEventListener('click', ()=>{
-    const val = Number(document.getElementById('customMinutes').value);
-    addEntry('moderate', val);
-  });
-  document.getElementById('addHard').addEventListener('click', ()=>{
-    const val = Number(document.getElementById('customMinutes').value);
-    addEntry('hard', val);
-  });
+  // Buttons are created in setupQuickButtons; listeners are attached there
   const themeBtn = document.getElementById('themeToggle');
   if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
   updateThemeToggleIcon();

@@ -36,7 +36,7 @@ npm start
 Windows: run "Start Fitness-Tracker.vbs".
 
 3. Click the "Choose file" button and select an existing or new (empty) .json / .txt file.
-4. Add entries using the quick buttons or the free minutes field.
+4. Add entries using the quick buttons. For custom minutes, use the small input at the end of each row ("Moderat" / "Hart") and click the corresponding add button.
 5. Data is saved automatically.
 
 ## Folder structure (key files)
