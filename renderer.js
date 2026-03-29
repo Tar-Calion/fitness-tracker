@@ -702,24 +702,8 @@ function setupQuickButtons() {
    { type: 'hard', label: 'Intensiv', cls: 'hard' }].forEach(({ type, label, cls }) => {
     const card = document.createElement('div');
     card.className = 'input-card';
-    card.innerHTML = `<div class="input-card-title ${cls}">${label}</div>`;
 
-    // Two rows of quick buttons
-    [row1, row2].forEach(mins => {
-      const btnRow = document.createElement('div');
-      btnRow.className = 'quick-buttons-row';
-      mins.forEach(m => {
-        const btn = document.createElement('button');
-        btn.className = 'quick-btn';
-        btn.textContent = m;
-        btn.title = `${m} Minuten ${label}`;
-        btn.addEventListener('click', () => addEntry(type, m));
-        btnRow.appendChild(btn);
-      });
-      card.appendChild(btnRow);
-    });
-
-    // Custom input row with label
+    // Custom input row with label at the top
     const customRow = document.createElement('div');
     customRow.className = 'input-card-custom';
     const lbl = document.createElement('span');
@@ -744,6 +728,21 @@ function setupQuickButtons() {
     });
     customRow.appendChild(addBtn);
     card.appendChild(customRow);
+
+    // Two rows of quick buttons
+    [row1, row2].forEach(mins => {
+      const btnRow = document.createElement('div');
+      btnRow.className = 'quick-buttons-row';
+      mins.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-btn';
+        btn.textContent = m;
+        btn.title = `${m} Minuten ${label}`;
+        btn.addEventListener('click', () => addEntry(type, m));
+        btnRow.appendChild(btn);
+      });
+      card.appendChild(btnRow);
+    });
 
     row.appendChild(card);
   });

@@ -484,24 +484,6 @@ body {
   flex-direction: column;
   gap: var(--sp-2);
 }
-.input-card-title {
-  font-family: var(--font-headline);
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: var(--sp-2) 0;
-  border-radius: var(--radius-md);
-}
-.input-card-title.mod {
-  color: var(--tag-mod-text);
-  background: var(--tag-mod-bg);
-}
-.input-card-title.hard {
-  color: var(--tag-hard-text);
-  background: var(--tag-hard-bg);
-}
 .input-card-custom {
   display: flex;
   align-items: center;

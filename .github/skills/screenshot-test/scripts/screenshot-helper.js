@@ -62,6 +62,7 @@ async function captureScreenshots() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    useContentSize: true,
     webPreferences: {
       preload: path.join(PROJECT_ROOT, 'preload.js'),
       contextIsolation: true,
@@ -91,7 +92,8 @@ async function captureScreenshots() {
       if (typeof refresh === 'function') refresh();
     `);
     await new Promise(r => setTimeout(r, 800));
-    const darkImg = await mainWindow.capturePage();
+    const [cw, ch] = mainWindow.getContentSize();
+    const darkImg = await mainWindow.capturePage({ x: 0, y: 0, width: cw, height: ch });
     const darkBuf = darkImg.toPNG();
     fs.writeFileSync(path.join(PROJECT_ROOT, `screenshot-${view}-dark.png`), darkBuf);
     console.log(`${view} dark saved (${darkBuf.length} bytes)`);
@@ -104,7 +106,8 @@ async function captureScreenshots() {
       if (typeof refresh === 'function') refresh();
     `);
     await new Promise(r => setTimeout(r, 800));
-    const lightImg = await mainWindow.capturePage();
+    const [lw, lh] = mainWindow.getContentSize();
+    const lightImg = await mainWindow.capturePage({ x: 0, y: 0, width: lw, height: lh });
     const lightBuf = lightImg.toPNG();
     fs.writeFileSync(path.join(PROJECT_ROOT, `screenshot-${view}-light.png`), lightBuf);
     console.log(`${view} light saved (${lightBuf.length} bytes)`);
