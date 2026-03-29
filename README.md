@@ -45,6 +45,7 @@ Windows: run "Start Fitness-Tracker.vbs".
 - `index.html` – UI + theme toggle
 - `renderer.js` – UI logic / rendering / theme handling
 - `package.json` – project and script definitions
+- `example-database.json` - example database
 
 ## Security notes
 - `contextIsolation: true`, no direct Node.js access in the renderer
