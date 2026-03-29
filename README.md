@@ -1,18 +1,33 @@
-# Fitness Tracker (Electron)
+# Fitness Tracker (Electron) — Advanced Fitness Tracker
 
-A local desktop app (Windows and other platforms) to record training minutes:
-- Two intensity levels: hard / moderate
+A local desktop app (Windows and other platforms) to record training minutes with a modern "Kinetic Volt" design:
+
+- **Three views** via sidebar navigation: Dashboard, Historie (History), Analyse
+- Two intensity levels: intensiv (hard) / moderat (moderate)
 - Goal: 150 minutes moderate or 75 minutes hard (1 hard = 2 moderate) per week
-- Quick buttons for common durations (5, 10, 15, 20, 30, 45, 60 minutes)
-- Progress bar for the current week
- - 15-week bar chart (moderate-equivalents), auto-scaling vertical size
+- Quick-add cards for common durations (5 to 60 minutes)
+- Progress bar with percentage for the current week
+- 15-week bar chart (moderate-equivalents), auto-scaling
+- **History view**: Full CRUD — view, add, edit, delete individual entries with inline editing, filter by type, sort by date/minutes
+- **Analyse view**: Key stats (best month, weekly average, yearly total), monthly trend line chart, moderate/intensive ratio donut chart
 - Stored in a user-chosen JSON/TXT file (an array of entries)
 - Remembers the last chosen file (in the app config under the user profile)
-- Toggleable Dark Mode (🌙 / ☀️) — setting persists across restarts
-- Automatic refresh shortly after midnight (the new Monday week starts automatically, and the "today" marker advances without manual reload)
+- Toggleable Dark/Light Mode — setting persists across restarts
+- Automatic refresh shortly after midnight
 
-## Screenshot
-![Screenshot](screenshot.png)
+## Screenshots
+
+### Dashboard (Dark / Light)
+![Dashboard Dark](screenshot-dashboard-dark.png)
+![Dashboard Light](screenshot-dashboard-light.png)
+
+### History (Dark / Light)
+![History Dark](screenshot-history-dark.png)
+![History Light](screenshot-history-light.png)
+
+### Analyse (Dark / Light)
+![Analyse Dark](screenshot-analyse-dark.png)
+![Analyse Light](screenshot-analyse-light.png)
 
 
 ## Data format
@@ -35,17 +50,31 @@ npm start
 ```
 Windows: run "Start Fitness-Tracker.vbs".
 
-3. Click the "Choose file" button and select an existing or new (empty) .json / .txt file.
-4. Add entries using the quick buttons. For custom minutes, use the small input at the end of each row ("Moderat" / "Hart") and click the corresponding add button.
-5. Data is saved automatically.
+3. Use the sidebar to navigate between Dashboard, Historie, and Analyse views.
+4. **Dashboard**: Add entries using the quick-add cards (Moderat / Intensiv). For custom minutes, type in the input field and click +. View week overview, progress bar, and 15-week chart.
+5. **Historie**: View all entries sorted by date. Use filters and sorting. Click ✏️ to edit inline, 🗑️ to delete, or "Neuer Eintrag" to add.
+6. **Analyse**: View statistics, monthly trend chart, and type ratio.
+7. **Einstellungen** (sidebar bottom): Load/create data files.
+8. Data is saved automatically on every change.
 
 ## Folder structure (key files)
 - `main.js` – Electron main process, window creation & file/config IPC
 - `preload.js` – secure bridge layer (`contextIsolation` enabled)
-- `index.html` – UI + theme toggle
-- `renderer.js` – UI logic / rendering / theme handling
+- `index.html` – UI layout (sidebar, 3 views, header)
+- `renderer.js` – UI logic, view routing, rendering, charts, history CRUD
+- `styles.css` – Kinetic Volt design system (CSS custom properties, dark/light themes)
 - `package.json` – project and script definitions
-- `example-database.json` - example database
+- `example-database.json` – example database
+- `screenshot-helper.js` – automated screenshot capture for all views/themes
+- `node_modules/@fontsource/` – bundled fonts (Space Grotesk, Inter)
+
+## Design System
+The app uses the "Kinetic Volt" design system:
+- **Fonts**: Space Grotesk (headlines), Inter (body) — bundled locally
+- **Dark theme** (default): Surface hierarchy from `#0E0E0E` to `#262626`, neon green accent `#A2FE00`
+- **Light theme**: Light surfaces, darker green accent `#7ACC00`
+- **No-Line Rule**: Structure through surface tone changes, not borders
+- CSS custom properties for all tokens in `styles.css`
 
 ## Security notes
 - `contextIsolation: true`, no direct Node.js access in the renderer
@@ -66,11 +95,5 @@ Then:
 ```bash
 npx electron-builder
 ```
-
-## Further ideas
-- Delete / undo individual entries (with a UI dialog)
-- Internationalization
-- Optimize for smaller windows
-- Configurable intensity levels and goals
 
 License: The Unlicense (Public Domain)

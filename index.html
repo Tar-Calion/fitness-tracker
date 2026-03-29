@@ -2,70 +2,132 @@
 <html lang="de">
 <head>
 <meta charset="utf-8" />
-<title>Fitness Tracker</title>
+<title>Advanced Fitness Tracker</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<style>
-  /* Theme variables (adjusted for less glaring contrast) */
-  :root { --bg: #f6f7f9; --fg:#121314; --panel:#fcfcfd; --border:#d0d4d9; --muted:#586069; --progress-bg:#e6e8eb; }
-  body.dark { --bg:#121315; --fg:#e7e9ed; --panel:#1e1f21; --border:#3a3d42; --muted:#a5aab0; --progress-bg:#2a2d31; }
-  html, body { height:100%; margin:0; }
-  body { font-family: system-ui, sans-serif; padding: 0.6em 0.9em; max-width: 1100px; margin:auto; overflow-y:auto; background:var(--bg); color:var(--fg); transition: background .25s, color .25s; display:flex; flex-direction:column; box-sizing:border-box; }
-  h1 { margin:0 0 0.4em; }
-  h2 { margin: 1.0em 0 0.4em; font-size:1.15em; }
-  button { margin: 0.25em; padding: 0.55em 0.8em; min-width: 80px; font-size:14px; touch-action: manipulation; cursor:pointer; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
-  /* Uniform width for quick buttons */
-  #quickButtons button.quick-btn { width:80px; flex:0 0 80px; }
-  #quickButtons { display:flex; flex-wrap:wrap; align-items:center; max-width:100%; }
-  button:hover { filter:brightness(1.05); }
-  .inline { display:inline-block; }
-  #fileStatus { margin: 0.4em 0 0.6em; font-size: 0.85em; color:var(--muted); }
-  .day { display: inline-block; width: 120px; text-align: center; margin: 0.25em; vertical-align: top; background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:6px 4px; font-size:12px; min-height:80px; box-sizing:border-box; }
-  /* Highlight for current day */
-  .day.today { background:#fff4cc; border-color:#d8aa1e; box-shadow:0 0 0 2px #f6d375 inset; }
-  body.dark .day.today { background:#3a300d; border-color:#c2981c; box-shadow:0 0 0 2px #5a4a16 inset; }
-  .hard { color: darkred; font-weight: 700; }
-  .moderate { color: darkgreen; font-weight: 700; }
-  .progress-container { width: 100%; background: var(--progress-bg); height: 22px; border-radius: 5px; margin-top:0.4em; position: relative; overflow:hidden; }
-  .progress-bar { height: 100%; background: orange; text-align: center; color:white; line-height: 22px; white-space: nowrap; display: inline-block; font-weight:600; font-size:12px; }
-  .progress-green { background: #0a8f24; }
-  .week-small { display:flex; align-items:center; gap:10px; margin:4px 0; font-size:12px; }
-  .week-label { font-weight:500; margin:0; min-width:115px; }
-  .week-small-bar-wrapper { background:var(--progress-bg); height:12px; border-radius:8px; overflow:hidden; width:100%; flex:1; }
-  .week-small-bar { background: linear-gradient(90deg,#ff9800,#ffb347); height:100%; display:block; width:0; transition:width .35s ease; }
-  .week-small-bar.green { background: #0a8f24; }
-  .week-eq { width:70px; text-align:right; font-variant-numeric: tabular-nums; }
-  input[type="number"] { box-sizing:border-box; padding: 0.55em 0.8em; width:70px; margin:0.25em 6px 0.25em 0; font-size:14px; background:var(--panel); color:var(--fg); border:1px solid var(--border); border-radius:6px; }
-  /* Visual separation for custom inputs/buttons at end of each row */
-  .custom-controls { display:flex; align-items:center; gap:6px; margin:0.25em; padding-left:10px; border-left:2px solid var(--border); align-self:center; }
-  .group-label { font-weight:700; width:140px; flex:0 0 140px; margin:0.25em; font-size:17px; text-align:center; letter-spacing:0.5px; }
-  .muted { color:var(--muted); }
-  .footer-note { margin-top:1.2em; font-size:0.65em; color:var(--muted); }
-  .section-inline { display:flex; flex-wrap:wrap; align-items:flex-start; }
-  .week-summary-text { font-size:11px; margin-top:4px; }
-  .theme-toggle { float:right; margin-top:-0.2em; }
-  .chart-container { flex:1; min-height:200px; display:flex; flex-direction:column; overflow:hidden; margin-top:-1.5em; }
-  #barChart { width:100%; height:100%; display:block; }
-</style>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<h1>Fitness Tracker <button id="themeToggle" class="theme-toggle" title="Hell/Dunkel umschalten">🌙</button></h1>
-<div>
-  <button id="chooseFileBtn">📂 Datei wählen</button>
-  <button id="createFileBtn">🆕 Neue Datei</button>
-  <button id="reloadBtn" title="Datei neu laden">🔄 Neu laden</button>
-  <span id="fileStatus">Keine Datei gewählt.</span>
-</div>
+<div class="app-layout">
 
-<h2>Eingabe heute</h2>
-<div id="quickButtons"></div>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">AFT</div>
+      <div class="sidebar-logo-text">Advanced<span>Fitness Tracker</span></div>
+    </div>
 
-<h2>Aktuelle Woche</h2>
-<div id="weekView"></div>
-<div id="weekProgress"></div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-view="history">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Historie
+      </button>
+      <button class="nav-item" data-view="analyse">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analyse
+      </button>
+    </nav>
 
-<h2>Letzte 15 Wochen</h2>
-<div class="chart-container">
-  <canvas id="barChart"></canvas>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-title">Einstellungen</div>
+      <div class="sidebar-btns-row">
+        <button id="chooseFileBtn" class="sidebar-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Daten laden
+        </button>
+        <button id="createFileBtn" class="sidebar-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Neue Datei
+        </button>
+      </div>
+      <div id="fileStatus">Keine Datei gewählt.</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="header-bar">
+      <div class="header-week-display" id="headerWeekDisplay"></div>
+      <div class="header-actions">
+        <button id="themeToggle" class="theme-toggle-btn" title="Hell/Dunkel umschalten">🌙</button>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- Dashboard View -->
+      <div id="view-dashboard" class="view active">
+        <div class="input-section">
+          <div class="section-title">Heutige Aktivität</div>
+          <div id="quickButtons"></div>
+        </div>
+
+        <div class="week-section">
+          <div class="section-title">Wochenübersicht</div>
+          <div id="weekView" class="week-grid"></div>
+        </div>
+
+        <div id="weekProgress" class="progress-section"></div>
+
+        <div class="chart-section">
+          <div class="section-title">Letzte 15 Wochen</div>
+          <div class="chart-canvas-wrap">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- History View -->
+      <div id="view-history" class="view">
+        <div class="history-header">
+          <div class="headline-sm">Historie</div>
+          <div class="history-filters">
+            <label class="filter-label">Von</label>
+            <input type="date" id="historyDateFrom" class="filter-input" />
+            <label class="filter-label">Bis</label>
+            <input type="date" id="historyDateTo" class="filter-input" />
+            <button id="historyResetFilter" class="filter-reset-btn" title="Filter zurücksetzen">✕</button>
+            <select id="historySortBy" class="filter-select">
+              <option value="date-desc">Neueste zuerst</option>
+              <option value="date-asc">Älteste zuerst</option>
+              <option value="minutes-desc">Meiste Minuten</option>
+              <option value="minutes-asc">Wenigste Minuten</option>
+            </select>
+          </div>
+          <button id="addEntryBtn" class="btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Neuer Eintrag
+          </button>
+        </div>
+        <div id="historyTableWrap"></div>
+      </div>
+
+      <!-- Analyse View -->
+      <div id="view-analyse" class="view">
+        <div class="headline-sm" style="margin-bottom:var(--sp-6)">Analyse</div>
+        <div id="analyseStats" class="stats-grid"></div>
+        <div class="analyse-charts-grid">
+          <div class="analyse-chart-card">
+            <div class="card-title">Monatlicher Trend</div>
+            <div class="analyse-chart-wrap">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+          <div class="analyse-chart-card">
+            <div class="card-title">Verhältnis Moderat / Intensiv</div>
+            <div class="analyse-chart-wrap">
+              <canvas id="ratioChart"></canvas>
+            </div>
+            <div id="ratioLegend" class="ratio-legend"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
 </div>
 
 <script src="renderer.js"></script>

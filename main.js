@@ -43,8 +43,8 @@ function writeEntries(filePath, entries) {
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1368,
+    height: 862,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
