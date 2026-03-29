@@ -32,7 +32,7 @@ Entry format — do not alter the shape without migrating existing files:
 | `index.html` | Layout: sidebar, header, 3 view containers |
 | `renderer.js` | All UI logic: routing, dashboard, history CRUD, analyse charts |
 | `styles.css` | Kinetic Volt design system, all component styles |
-| `screenshot-helper.js` | Automated screenshot capture for all 6 view/theme combos |
+| `screenshot-helper.js` | Automated screenshot capture for all 6 view/theme combos (in `.github/skills/screenshot-test/scripts/`) |
 
 ## IPC Channels
 `init` · `choose-file` · `create-file` · `save-entries` · `get-current-file` · `set-dark-mode`

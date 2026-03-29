@@ -65,7 +65,7 @@ Windows: run "Start Fitness-Tracker.vbs".
 - `styles.css` – Kinetic Volt design system (CSS custom properties, dark/light themes)
 - `package.json` – project and script definitions
 - `example-database.json` – example database
-- `screenshot-helper.js` – automated screenshot capture for all views/themes
+- `.github/skills/screenshot-test/` – screenshot testing skill with automated capture script
 - `node_modules/@fontsource/` – bundled fonts (Space Grotesk, Inter)
 
 ## Design System

@@ -1,7 +1,11 @@
-// Temporary script to capture light/dark screenshots
+// Screenshot helper for Fitness Tracker
+// Run from repo root: npx electron .github/skills/screenshot-test/scripts/screenshot-helper.js
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
+
+// Repo root is CWD (must be run from repo root)
+const PROJECT_ROOT = process.cwd();
 
 let mainWindow;
 const CONFIG_FILE = path.join(app.getPath('userData'), 'config.json');
@@ -49,8 +53,7 @@ ipcMain.handle('set-dark-mode', (_e, enabled) => {
 ipcMain.handle('create-file', async () => ({ filePath: null, entries: [] }));
 
 async function captureScreenshots() {
-  // Point config at example-database.json so data is loaded
-  const exampleFile = path.join(__dirname, 'example-database.json');
+  const exampleFile = path.join(PROJECT_ROOT, 'example-database.json');
   const cfg = loadConfig();
   cfg.lastFilePath = exampleFile;
   cfg.darkMode = true;
@@ -60,14 +63,14 @@ async function captureScreenshots() {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(PROJECT_ROOT, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
     }
   });
 
-  await mainWindow.loadFile('index.html');
+  await mainWindow.loadFile(path.join(PROJECT_ROOT, 'index.html'));
   mainWindow.show();
   mainWindow.focus();
   await new Promise(r => setTimeout(r, 4000));
@@ -75,7 +78,6 @@ async function captureScreenshots() {
   const views = ['dashboard', 'history', 'analyse'];
 
   for (const view of views) {
-    // Switch to view
     await mainWindow.webContents.executeJavaScript(`
       if (typeof switchView === 'function') switchView('${view}');
     `);
@@ -91,7 +93,7 @@ async function captureScreenshots() {
     await new Promise(r => setTimeout(r, 800));
     const darkImg = await mainWindow.capturePage();
     const darkBuf = darkImg.toPNG();
-    fs.writeFileSync(path.join(__dirname, `screenshot-${view}-dark.png`), darkBuf);
+    fs.writeFileSync(path.join(PROJECT_ROOT, `screenshot-${view}-dark.png`), darkBuf);
     console.log(`${view} dark saved (${darkBuf.length} bytes)`);
 
     // Light mode
@@ -104,11 +106,10 @@ async function captureScreenshots() {
     await new Promise(r => setTimeout(r, 800));
     const lightImg = await mainWindow.capturePage();
     const lightBuf = lightImg.toPNG();
-    fs.writeFileSync(path.join(__dirname, `screenshot-${view}-light.png`), lightBuf);
+    fs.writeFileSync(path.join(PROJECT_ROOT, `screenshot-${view}-light.png`), lightBuf);
     console.log(`${view} light saved (${lightBuf.length} bytes)`);
   }
 
-  // Restore dark mode
   const restoreCfg = loadConfig();
   restoreCfg.darkMode = true;
   saveConfig(restoreCfg);
