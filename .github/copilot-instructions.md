@@ -1,5 +1,7 @@
 # Copilot Instructions — Fitness Tracker
 
+Local Electron app to track daily exercise minutes.
+
 ## Security (do NOT weaken)
 - `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true` — never disable.
 - Renderer must never touch the filesystem. All FS goes through IPC: handler in `main.js` → bridge in `preload.js` → call via `window.fitnessAPI` in `renderer.js`.
