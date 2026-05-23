@@ -9,7 +9,7 @@ A local desktop app (Windows and other platforms) to record training minutes wit
 - Progress bar with percentage for the current week
 - 15-week bar chart (moderate-equivalents), auto-scaling
 - **History view**: Full CRUD — view, add, edit, delete individual entries with inline editing, filter by type, sort by date/minutes
-- **Analyse view**: Key stats (best month, weekly average, yearly total), monthly trend line chart, moderate/intensive ratio donut chart
+- **Analyse view**: Weekly results through the months with period filtering, goal hit rate, month-over-month trend, consistency, insights, and monthly week cards
 - Stored in a user-chosen JSON/TXT file (an array of entries)
 - Remembers the last chosen file (in the app config under the user profile)
 - Toggleable Dark/Light Mode — setting persists across restarts
@@ -53,7 +53,7 @@ Windows: run "Start Fitness-Tracker.vbs".
 3. Use the sidebar to navigate between Dashboard, Historie, and Analyse views.
 4. **Dashboard**: Add entries using the quick-add cards (Moderat / Intensiv). For custom minutes, type in the input field and click +. View week overview, progress bar, and 15-week chart.
 5. **Historie**: View all entries sorted by date. Use filters and sorting. Click ✏️ to edit inline, 🗑️ to delete, or "Neuer Eintrag" to add.
-6. **Analyse**: View statistics, monthly trend chart, and type ratio.
+6. **Analyse**: Track weekly equivalent minutes across months. Choose a period, compare month averages, inspect weekly changes, and see goal streak/consistency insights. Weeks are assigned to months by the ISO-style Thursday rule, and the current in-progress week is shown but excluded from completed-week goal rates.
 7. **Einstellungen** (sidebar bottom): Load/create data files.
 8. Data is saved automatically on every change.
 

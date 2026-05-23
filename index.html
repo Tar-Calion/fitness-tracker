@@ -106,23 +106,36 @@
 
       <!-- Analyse View -->
       <div id="view-analyse" class="view">
-        <div class="headline-sm" style="margin-bottom:var(--sp-6)">Analyse</div>
-        <div id="analyseStats" class="stats-grid"></div>
-        <div class="analyse-charts-grid">
-          <div class="analyse-chart-card">
-            <div class="card-title">Monatlicher Trend</div>
-            <div class="analyse-chart-wrap">
-              <canvas id="trendChart"></canvas>
-            </div>
+        <div class="analyse-header">
+          <div>
+            <div class="headline-sm">Analyse</div>
+            <div class="analyse-subtitle">Wöchentliche Ergebnisse im Monatsverlauf</div>
           </div>
-          <div class="analyse-chart-card">
-            <div class="card-title">Verhältnis Moderat / Intensiv</div>
-            <div class="analyse-chart-wrap">
-              <canvas id="ratioChart"></canvas>
-            </div>
-            <div id="ratioLegend" class="ratio-legend"></div>
+          <div class="analyse-controls">
+            <label class="filter-label" for="analyseRange">Zeitraum</label>
+            <select id="analyseRange" class="filter-select">
+              <option value="3m">Letzte 3 Monate</option>
+              <option value="6m" selected>Letzte 6 Monate</option>
+              <option value="12m">Letzte 12 Monate</option>
+              <option value="year">Dieses Jahr</option>
+              <option value="all">Alle Daten</option>
+            </select>
           </div>
         </div>
+
+        <div id="analyseStats" class="stats-grid analyse-stats-grid"></div>
+
+        <div class="analyse-main-grid">
+          <div class="analyse-chart-card analyse-trend-card">
+            <div class="card-title">Wöchentlicher Verlauf</div>
+            <div class="analyse-chart-wrap">
+              <canvas id="weeklyTrendChart"></canvas>
+            </div>
+          </div>
+          <div id="analyseInsights" class="analyse-insights-card"></div>
+        </div>
+
+        <div id="monthlyTimeline" class="monthly-timeline"></div>
       </div>
 
     </div>

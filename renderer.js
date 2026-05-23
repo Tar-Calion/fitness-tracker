@@ -39,9 +39,6 @@ function formatDateShort(d) {
 function formatDateFull(d) {
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-function getMonthName(monthIndex) {
-  return ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'][monthIndex];
-}
 
 /* ============================== DOM Elements ============================== */
 const fileStatusEl = document.getElementById('fileStatus');
@@ -51,9 +48,10 @@ const barChartEl = document.getElementById('barChart');
 const headerWeekDisplay = document.getElementById('headerWeekDisplay');
 const historyTableWrap = document.getElementById('historyTableWrap');
 const analyseStatsEl = document.getElementById('analyseStats');
-const trendChartEl = document.getElementById('trendChart');
-const ratioChartEl = document.getElementById('ratioChart');
-const ratioLegendEl = document.getElementById('ratioLegend');
+const analyseRangeEl = document.getElementById('analyseRange');
+const weeklyTrendChartEl = document.getElementById('weeklyTrendChart');
+const analyseInsightsEl = document.getElementById('analyseInsights');
+const monthlyTimelineEl = document.getElementById('monthlyTimeline');
 
 /* ============================== View Routing ============================== */
 let currentView = 'dashboard';
@@ -366,68 +364,358 @@ function showConfirm(message, onConfirm) {
 }
 
 /* ============================== Analyse View ============================== */
+const WEEKLY_GOAL = 150;
+
 function renderAnalyse() {
-  renderAnalyseStats();
-  drawTrendChart();
-  drawRatioChart();
+  const data = buildAnalyseData();
+  renderAnalyseStats(data);
+  renderAnalyseInsights(data);
+  renderMonthlyTimeline(data);
+  drawWeeklyTrendChart(data);
 }
 
-function renderAnalyseStats() {
-  if (!analyseStatsEl) return;
+function addDays(date, days) {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabel(date, style = 'long') {
+  return date.toLocaleDateString('de-DE', { month: style, year: 'numeric' });
+}
+
+function formatWeekRange(weekStart) {
+  return `${formatDateShort(weekStart)} – ${formatDateShort(addDays(weekStart, 6))}`;
+}
+
+function formatDelta(value) {
+  if (value === null || value === undefined) return '–';
+  if (value > 0) return `+${value}`;
+  return String(value);
+}
+
+function getWeekNumber(date) {
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  target.setDate(target.getDate() + 3 - ((target.getDay() + 6) % 7));
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  return 1 + Math.round(((target - firstThursday) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+}
+
+function getAnalysePeriod() {
   const now = new Date();
-  const thisYear = now.getFullYear();
-  const yearEntries = entries.filter(e => parseDate(e.date).getFullYear() === thisYear);
+  now.setHours(0, 0, 0, 0);
+  const selected = analyseRangeEl ? analyseRangeEl.value : '6m';
+  let start;
+  let label;
 
-  // Total minutes this year
-  const totalMod = yearEntries.filter(e => e.type === 'moderate').reduce((s, e) => s + e.minutes, 0);
-  const totalHard = yearEntries.filter(e => e.type === 'hard').reduce((s, e) => s + e.minutes, 0);
-  const totalEq = totalMod + totalHard * 2;
+  if (selected === 'year') {
+    start = new Date(now.getFullYear(), 0, 1);
+    label = 'dieses Jahr';
+  } else if (selected === 'all') {
+    const firstEntry = entries.length
+      ? entries.reduce((first, entry) => entry.date < first.date ? entry : first, entries[0])
+      : null;
+    const firstDate = firstEntry ? parseDate(firstEntry.date) : now;
+    start = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+    label = 'alle Daten';
+  } else {
+    const months = selected === '3m' ? 3 : selected === '12m' ? 12 : 6;
+    start = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    label = `letzte ${months} Monate`;
+  }
+  start.setHours(0, 0, 0, 0);
 
-  // Average per week (weeks with any data)
-  const weekMap = {};
-  yearEntries.forEach(e => {
-    const wk = ymd(startOfWeek(parseDate(e.date)));
-    if (!weekMap[wk]) weekMap[wk] = 0;
-    weekMap[wk] += (e.type === 'hard' ? e.minutes * 2 : e.minutes);
-  });
-  const weekKeys = Object.keys(weekMap);
-  const avgPerWeek = weekKeys.length ? Math.round(weekKeys.reduce((s, k) => s + weekMap[k], 0) / weekKeys.length) : 0;
+  return {
+    start,
+    end: now,
+    endMarker: addDays(startOfWeek(now), 3),
+    label
+  };
+}
 
-  // Best month
-  const monthMap = {};
-  yearEntries.forEach(e => {
-    const d = parseDate(e.date);
-    const key = d.getMonth();
-    if (!monthMap[key]) monthMap[key] = 0;
-    monthMap[key] += (e.type === 'hard' ? e.minutes * 2 : e.minutes);
+function createWeekBuckets() {
+  const buckets = {};
+  entries.forEach(entry => {
+    const weekStart = startOfWeek(parseDate(entry.date));
+    const key = ymd(weekStart);
+    if (!buckets[key]) buckets[key] = { moderate: 0, hard: 0 };
+    if (entry.type === 'hard') buckets[key].hard += entry.minutes;
+    else buckets[key].moderate += entry.minutes;
   });
-  let bestMonth = '–';
-  let bestMonthVal = 0;
-  Object.keys(monthMap).forEach(m => {
-    if (monthMap[m] > bestMonthVal) { bestMonthVal = monthMap[m]; bestMonth = getMonthName(Number(m)); }
+  return buckets;
+}
+
+function summarizeMonth(month) {
+  const completeWeeks = month.weeks.filter(week => week.isComplete);
+  const hitCount = completeWeeks.filter(week => week.eq >= WEEKLY_GOAL).length;
+  const totalEq = month.weeks.reduce((sum, week) => sum + week.eq, 0);
+  const avgEq = completeWeeks.length
+    ? Math.round(completeWeeks.reduce((sum, week) => sum + week.eq, 0) / completeWeeks.length)
+    : 0;
+
+  return {
+    ...month,
+    completeWeeks,
+    completeCount: completeWeeks.length,
+    hitCount,
+    totalEq,
+    avgEq,
+    hasEntries: month.weeks.some(week => week.eq > 0)
+  };
+}
+
+function buildAnalyseData() {
+  const period = getAnalysePeriod();
+  const buckets = createWeekBuckets();
+  const currentWeekStart = startOfWeek(new Date());
+  const weeks = [];
+  const monthsByKey = new Map();
+
+  for (let cursor = startOfWeek(period.start); cursor <= currentWeekStart; cursor = addDays(cursor, 7)) {
+    const monthAnchor = addDays(cursor, 3);
+    if (monthAnchor < period.start || monthAnchor > period.endMarker) continue;
+
+    const key = ymd(cursor);
+    const bucket = buckets[key] || { moderate: 0, hard: 0 };
+    const eq = bucket.moderate + bucket.hard * 2;
+    const week = {
+      key,
+      start: new Date(cursor),
+      end: addDays(cursor, 6),
+      weekNumber: getWeekNumber(cursor),
+      monthKey: monthKey(monthAnchor),
+      monthLabel: monthLabel(monthAnchor),
+      monthShortLabel: monthLabel(monthAnchor, 'short'),
+      moderate: bucket.moderate,
+      hard: bucket.hard,
+      eq,
+      delta: null,
+      isComplete: cursor.getTime() < currentWeekStart.getTime(),
+      isCurrent: cursor.getTime() === currentWeekStart.getTime()
+    };
+    weeks.push(week);
+
+    if (!monthsByKey.has(week.monthKey)) {
+      monthsByKey.set(week.monthKey, {
+        key: week.monthKey,
+        label: week.monthLabel,
+        shortLabel: week.monthShortLabel,
+        weeks: []
+      });
+    }
+    monthsByKey.get(week.monthKey).weeks.push(week);
+  }
+
+  weeks.forEach((week, index) => {
+    week.delta = index > 0 ? week.eq - weeks[index - 1].eq : null;
   });
+
+  const months = Array.from(monthsByKey.values()).map(summarizeMonth);
+  months.forEach((month, index) => {
+    const previous = months[index - 1];
+    month.deltaAvg = previous && previous.completeCount && month.completeCount
+      ? month.avgEq - previous.avgEq
+      : null;
+  });
+
+  const completeWeeks = weeks.filter(week => week.isComplete);
+  const weeksForStats = completeWeeks.length ? completeWeeks : weeks;
+  const hitWeeks = completeWeeks.filter(week => week.eq >= WEEKLY_GOAL);
+  const avgWeekly = weeksForStats.length
+    ? Math.round(weeksForStats.reduce((sum, week) => sum + week.eq, 0) / weeksForStats.length)
+    : 0;
+  const bestWeek = completeWeeks.reduce((best, week) => !best || week.eq > best.eq ? week : best, null);
+  const worstWeek = completeWeeks.reduce((worst, week) => !worst || week.eq < worst.eq ? week : worst, null);
+  const varianceBase = completeWeeks.length ? completeWeeks : weeks;
+  const mean = varianceBase.length ? varianceBase.reduce((sum, week) => sum + week.eq, 0) / varianceBase.length : 0;
+  const stdDev = varianceBase.length
+    ? Math.sqrt(varianceBase.reduce((sum, week) => sum + Math.pow(week.eq - mean, 2), 0) / varianceBase.length)
+    : 0;
+  const consistencyPercent = mean > 0 ? Math.round((stdDev / mean) * 100) : 0;
+  const consistencyLabel = !varianceBase.length || mean === 0
+    ? '–'
+    : consistencyPercent <= 25 ? 'stabil'
+      : consistencyPercent <= 50 ? 'wechselhaft'
+        : 'stark schwankend';
+  let currentStreak = 0;
+  for (let i = completeWeeks.length - 1; i >= 0; i--) {
+    if (completeWeeks[i].eq >= WEEKLY_GOAL) currentStreak += 1;
+    else break;
+  }
+  const latestMonth = [...months].reverse().find(month => month.completeCount > 0);
+  const previousMonth = latestMonth
+    ? months.slice(0, months.indexOf(latestMonth)).reverse().find(month => month.completeCount > 0)
+    : null;
+  const monthTrend = latestMonth && previousMonth
+    ? {
+        value: latestMonth.avgEq - previousMonth.avgEq,
+        latest: latestMonth,
+        previous: previousMonth
+      }
+    : null;
+
+  return {
+    period,
+    weeks,
+    months,
+    completeWeeks,
+    avgWeekly,
+    hitWeeks,
+    goalRate: completeWeeks.length ? Math.round((hitWeeks.length / completeWeeks.length) * 100) : null,
+    bestWeek,
+    worstWeek,
+    consistencyPercent,
+    consistencyLabel,
+    currentStreak,
+    monthTrend,
+    hasEntriesInPeriod: weeks.some(week => week.eq > 0)
+  };
+}
+
+function renderAnalyseStats(data) {
+  if (!analyseStatsEl) return;
+  const trend = data.monthTrend;
+  const trendClass = trend && trend.value > 0 ? 'trend-up' : trend && trend.value < 0 ? 'trend-down' : 'trend-flat';
+  const trendValue = trend ? `${formatDelta(trend.value)} eq` : '–';
+  const trendSub = trend
+    ? `${trend.latest.shortLabel} vs. ${trend.previous.shortLabel}`
+    : 'noch kein Vormonat';
+  const goalRateValue = data.goalRate === null ? '–' : `${data.goalRate}%`;
+  const goalRateSub = data.completeWeeks.length
+    ? `${data.hitWeeks.length} von ${data.completeWeeks.length} abgeschlossenen Wochen`
+    : 'aktuelle Woche noch offen';
 
   analyseStatsEl.innerHTML = `
     <div class="stat-card">
-      <div class="stat-card-label">Bester Monat</div>
-      <div class="stat-card-value">${bestMonth}</div>
-      <div class="stat-card-sub">${bestMonthVal} eq-min</div>
-    </div>
-    <div class="stat-card">
       <div class="stat-card-label">Ø pro Woche</div>
-      <div class="stat-card-value">${avgPerWeek}</div>
-      <div class="stat-card-sub">Äquivalent-Minuten</div>
+      <div class="stat-card-value">${data.avgWeekly}</div>
+      <div class="stat-card-sub">${data.period.label}, eq-min</div>
     </div>
     <div class="stat-card">
-      <div class="stat-card-label">Gesamtminuten ${thisYear}</div>
-      <div class="stat-card-value">${totalEq}</div>
-      <div class="stat-card-sub">${totalMod} mod + ${totalHard} intensiv</div>
+      <div class="stat-card-label">Zielquote</div>
+      <div class="stat-card-value">${goalRateValue}</div>
+      <div class="stat-card-sub">${goalRateSub}</div>
+    </div>
+    <div class="stat-card ${trendClass}">
+      <div class="stat-card-label">Monatstrend</div>
+      <div class="stat-card-value">${trendValue}</div>
+      <div class="stat-card-sub">${trendSub}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Konsistenz</div>
+      <div class="stat-card-value">${data.consistencyLabel}</div>
+      <div class="stat-card-sub">${data.consistencyPercent ? `${data.consistencyPercent}% Schwankung` : 'mehr Daten nötig'}</div>
     </div>`;
 }
 
-function drawTrendChart() {
-  if (!trendChartEl) return;
-  const canvas = trendChartEl;
+function renderAnalyseInsights(data) {
+  if (!analyseInsightsEl) return;
+  const trendValue = data.monthTrend ? data.monthTrend.value : 0;
+  const trendLabel = !data.monthTrend
+    ? 'Noch kein belastbarer Monatstrend.'
+    : trendValue >= 15 ? 'Deine Wochen werden im Monatsvergleich stärker.'
+      : trendValue <= -15 ? 'Deine Wochen fallen im Monatsvergleich ab.'
+        : 'Deine Wochen sind im Monatsvergleich stabil.';
+  const bestWeek = data.bestWeek
+    ? `KW ${data.bestWeek.weekNumber}: ${data.bestWeek.eq} eq-min (${formatWeekRange(data.bestWeek.start)})`
+    : 'Noch keine abgeschlossene Woche';
+  const worstWeek = data.worstWeek
+    ? `KW ${data.worstWeek.weekNumber}: ${data.worstWeek.eq} eq-min (${formatWeekRange(data.worstWeek.start)})`
+    : 'Noch keine abgeschlossene Woche';
+  const mostConsistentMonth = data.months
+    .filter(month => month.completeWeeks.length >= 2)
+    .map(month => {
+      const mean = month.completeWeeks.reduce((sum, week) => sum + week.eq, 0) / month.completeWeeks.length;
+      const stdDev = Math.sqrt(month.completeWeeks.reduce((sum, week) => sum + Math.pow(week.eq - mean, 2), 0) / month.completeWeeks.length);
+      return { month, score: mean > 0 ? stdDev / mean : Number.POSITIVE_INFINITY };
+    })
+    .sort((a, b) => a.score - b.score)[0];
+
+  analyseInsightsEl.innerHTML = `
+    <div class="card-title">Einordnung</div>
+    <div class="insight-hero">${trendLabel}</div>
+    <div class="insight-list">
+      <div class="insight-item">
+        <span>Beste Woche</span>
+        <strong>${bestWeek}</strong>
+      </div>
+      <div class="insight-item">
+        <span>Schwächste Woche</span>
+        <strong>${worstWeek}</strong>
+      </div>
+      <div class="insight-item">
+        <span>Aktuelle Zielserie</span>
+        <strong>${data.currentStreak} Woche${data.currentStreak === 1 ? '' : 'n'}</strong>
+      </div>
+      <div class="insight-item">
+        <span>Konsequentester Monat</span>
+        <strong>${mostConsistentMonth ? mostConsistentMonth.month.shortLabel : 'mehr Daten nötig'}</strong>
+      </div>
+    </div>`;
+}
+
+function renderMonthlyTimeline(data) {
+  if (!monthlyTimelineEl) return;
+  if (!data.hasEntriesInPeriod) {
+    monthlyTimelineEl.innerHTML = `<div class="analyse-empty">
+      <div class="history-empty-icon">📈</div>
+      <div>Für diesen Zeitraum gibt es noch keine Einträge.</div>
+      <div class="analyse-empty-sub">Sobald du Trainingsminuten erfasst, erscheinen hier Wochenverlauf, Zielquote und Monatsvergleich.</div>
+    </div>`;
+    return;
+  }
+
+  monthlyTimelineEl.innerHTML = [...data.months].reverse().map(month => {
+    const monthDelta = month.deltaAvg === null
+      ? '–'
+      : `${formatDelta(month.deltaAvg)} eq Ø`;
+    const deltaClass = month.deltaAvg > 0 ? 'positive' : month.deltaAvg < 0 ? 'negative' : 'neutral';
+    const completeLabel = month.completeCount
+      ? `${month.hitCount} von ${month.completeCount} Wochen im Ziel`
+      : 'laufender Monat';
+
+    const weeksHtml = month.weeks.map(week => {
+      const status = week.eq >= WEEKLY_GOAL ? 'goal' : week.eq > 0 ? 'below' : 'empty';
+      const deltaClass = week.delta > 0 ? 'positive' : week.delta < 0 ? 'negative' : 'neutral';
+      const width = week.eq > 0 ? Math.max(6, Math.min((week.eq / WEEKLY_GOAL) * 100, 100)) : 0;
+      return `<div class="month-week-row ${week.isCurrent ? 'current' : ''}">
+        <div class="month-week-label">
+          <strong>KW ${week.weekNumber}</strong>
+          <span>${formatWeekRange(week.start)}${week.isCurrent ? ' · läuft' : ''}</span>
+        </div>
+        <div class="month-week-bar" aria-label="KW ${week.weekNumber}: ${week.eq} Äquivalent-Minuten">
+          <div class="month-week-fill ${status}" style="width:${width}%"></div>
+        </div>
+        <div class="month-week-value">${week.eq}</div>
+        <div class="month-week-delta ${deltaClass}">${formatDelta(week.delta)}</div>
+      </div>`;
+    }).join('');
+
+    return `<section class="month-card">
+      <div class="month-card-header">
+        <div>
+          <div class="month-card-title">${month.label}</div>
+          <div class="month-card-sub">${completeLabel}</div>
+        </div>
+        <div class="month-card-metrics">
+          <div><span>Ø</span><strong>${month.avgEq}</strong></div>
+          <div class="${deltaClass}"><span>vs. Vormonat</span><strong>${monthDelta}</strong></div>
+        </div>
+      </div>
+      <div class="month-week-list">${weeksHtml}</div>
+    </section>`;
+  }).join('');
+}
+
+function drawWeeklyTrendChart(data = buildAnalyseData()) {
+  if (!weeklyTrendChartEl) return;
+  const canvas = weeklyTrendChartEl;
   const ctx = canvas.getContext('2d');
   const container = canvas.parentElement;
   const rect = container.getBoundingClientRect();
@@ -441,39 +729,28 @@ function drawTrendChart() {
   ctx.scale(dpr, dpr);
   const width = rect.width;
   const height = rect.height;
-
-  // Collect monthly data for last 12 months
-  const months = [];
-  const now = new Date();
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth();
-    const monthEntries = entries.filter(e => {
-      const ed = parseDate(e.date);
-      return ed.getFullYear() === y && ed.getMonth() === m;
-    });
-    const eq = monthEntries.reduce((s, e) => s + (e.type === 'hard' ? e.minutes * 2 : e.minutes), 0);
-    months.push({ label: getMonthName(m), eq });
-  }
+  const weeks = data.weeks;
+  if (!weeks.length) return;
 
   const style = getComputedStyle(document.documentElement);
   const textColor = style.getPropertyValue('--on-surface-variant').trim() || '#A0A0A0';
   const lineColor = style.getPropertyValue('--primary').trim() || '#A2FE00';
-  const gridColor = style.getPropertyValue('--outline-variant').trim();
+  const gridColor = style.getPropertyValue('--outline-variant').trim() || 'rgba(255,255,255,0.08)';
+  const warningColor = style.getPropertyValue('--warning').trim() || '#FFB347';
+  const goalColor = style.getPropertyValue('--error').trim() || '#FF5252';
 
-  const pad = { left: 44, right: 16, top: 20, bottom: 30 };
+  const pad = { left: 44, right: 18, top: 24, bottom: 42 };
   const cw = width - pad.left - pad.right;
   const ch = height - pad.top - pad.bottom;
-  const maxVal = Math.max(...months.map(m => m.eq), 100);
+  const rawMax = Math.max(...weeks.map(week => week.eq), WEEKLY_GOAL);
+  const maxVal = Math.max(WEEKLY_GOAL, Math.ceil(rawMax / 50) * 50);
   const yScale = ch / maxVal;
 
   ctx.clearRect(0, 0, width, height);
 
-  // Grid
   ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
-  ctx.font = '9px Inter, system-ui, sans-serif';
+  ctx.font = '10px Inter, system-ui, sans-serif';
   ctx.fillStyle = textColor;
   ctx.textAlign = 'right';
   const step = maxVal > 500 ? 200 : maxVal > 200 ? 100 : 50;
@@ -483,16 +760,45 @@ function drawTrendChart() {
     ctx.fillText(v.toString(), pad.left - 5, y + 3);
   }
 
-  // Line
-  const points = months.map((m, i) => ({
-    x: pad.left + (i / (months.length - 1)) * cw,
-    y: pad.top + ch - m.eq * yScale
+  const goalY = pad.top + ch - WEEKLY_GOAL * yScale;
+  ctx.strokeStyle = goalColor;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 5]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, goalY);
+  ctx.lineTo(width - pad.right, goalY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = goalColor;
+  ctx.font = 'bold 10px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('Ziel 150', width - pad.right, goalY - 5);
+
+  const denominator = Math.max(weeks.length - 1, 1);
+  const points = weeks.map((week, i) => ({
+    x: pad.left + (i / denominator) * cw,
+    y: pad.top + ch - week.eq * yScale,
+    week
   }));
 
-  // Area fill
+  points.forEach((point, index) => {
+    if (index === 0 || point.week.monthKey !== points[index - 1].week.monthKey) {
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(point.x, pad.top);
+      ctx.lineTo(point.x, pad.top + ch);
+      ctx.stroke();
+      ctx.fillStyle = textColor;
+      ctx.font = '10px Inter, system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(point.week.monthShortLabel, Math.min(point.x + 4, width - pad.right - 40), height - 14);
+    }
+  });
+
   ctx.beginPath();
   ctx.moveTo(points[0].x, pad.top + ch);
-  points.forEach(p => ctx.lineTo(p.x, p.y));
+  points.forEach(point => ctx.lineTo(point.x, point.y));
   ctx.lineTo(points[points.length - 1].x, pad.top + ch);
   ctx.closePath();
   const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
@@ -501,99 +807,18 @@ function drawTrendChart() {
   ctx.fillStyle = grad;
   ctx.fill();
 
-  // Line stroke
   ctx.beginPath();
   points.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
   ctx.strokeStyle = lineColor;
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Dots
-  points.forEach(p => {
+  points.forEach(point => {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = lineColor;
+    ctx.arc(point.x, point.y, point.week.isCurrent ? 4 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = point.week.eq >= WEEKLY_GOAL ? lineColor : warningColor;
     ctx.fill();
   });
-
-  // X labels
-  ctx.fillStyle = textColor;
-  ctx.font = '9px Inter, system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  months.forEach((m, i) => {
-    const x = pad.left + (i / (months.length - 1)) * cw;
-    ctx.fillText(m.label, x, height - pad.bottom + 14);
-  });
-}
-
-function drawRatioChart() {
-  if (!ratioChartEl) return;
-  const canvas = ratioChartEl;
-  const ctx = canvas.getContext('2d');
-  const container = canvas.parentElement;
-  const rect = container.getBoundingClientRect();
-  if (rect.width < 10 || rect.height < 10) return;
-
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  ctx.scale(dpr, dpr);
-  const width = rect.width;
-  const height = rect.height;
-
-  const totalMod = entries.filter(e => e.type === 'moderate').reduce((s, e) => s + e.minutes, 0);
-  const totalHard = entries.filter(e => e.type === 'hard').reduce((s, e) => s + e.minutes, 0);
-  const total = totalMod + totalHard;
-
-  const style = getComputedStyle(document.documentElement);
-  const modColor = style.getPropertyValue('--tag-mod-text').trim() || '#A2FE00';
-  const hardColor = style.getPropertyValue('--tag-hard-text').trim() || '#FF5252';
-  const bgColor = style.getPropertyValue('--surface-variant').trim() || '#2A2A2A';
-
-  const cx = width / 2;
-  const cy = height / 2;
-  const radius = Math.min(cx, cy) - 10;
-
-  ctx.clearRect(0, 0, width, height);
-
-  if (total === 0) {
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = bgColor;
-    ctx.fill();
-  } else {
-    const slices = [
-      { val: totalMod, color: modColor },
-      { val: totalHard, color: hardColor }
-    ];
-    let startAngle = -Math.PI / 2;
-    slices.forEach(s => {
-      const angle = (s.val / total) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, radius, startAngle, startAngle + angle);
-      ctx.closePath();
-      ctx.fillStyle = s.color;
-      ctx.fill();
-      startAngle += angle;
-    });
-    // Inner circle for donut effect
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
-    ctx.fillStyle = style.getPropertyValue('--surface-container').trim() || '#1A1A1A';
-    ctx.fill();
-  }
-
-  // Legend
-  if (ratioLegendEl) {
-    const modPct = total ? Math.round((totalMod / total) * 100) : 0;
-    const hardPct = total ? Math.round((totalHard / total) * 100) : 0;
-    ratioLegendEl.innerHTML = `
-      <div class="ratio-legend-item"><span class="ratio-dot" style="background:${modColor}"></span> Moderat ${modPct}% (${totalMod} min)</div>
-      <div class="ratio-legend-item"><span class="ratio-dot" style="background:${hardColor}"></span> Intensiv ${hardPct}% (${totalHard} min)</div>`;
-  }
 }
 
 /* ============================== Refresh ============================== */
@@ -780,6 +1005,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderHistory();
   });
   document.getElementById('historySortBy').addEventListener('change', renderHistory);
+  if (analyseRangeEl) analyseRangeEl.addEventListener('change', renderAnalyse);
 
   // Nav
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -793,6 +1019,6 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('focus', refresh);
   window.addEventListener('resize', () => {
     if (currentView === 'dashboard') drawBarChart();
-    if (currentView === 'analyse') { drawTrendChart(); drawRatioChart(); }
+    if (currentView === 'analyse') drawWeeklyTrendChart();
   });
 });
