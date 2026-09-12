@@ -243,6 +243,7 @@ function drawBarChart() {
 
 /* ============================== History View ============================== */
 let historyEditingIdx = null;
+let historyNewEntry = null;
 
 function getFilteredEntries() {
   const fromVal = document.getElementById('historyDateFrom').value;
@@ -265,7 +266,7 @@ function getFilteredEntries() {
 
 function renderHistory() {
   if (!historyTableWrap) return;
-  if (!entries.length) {
+  if (!entries.length && !historyNewEntry) {
     historyTableWrap.innerHTML = `<div class="history-empty">
       <div class="history-empty-icon">📋</div>
       <div>Noch keine Einträge vorhanden.</div>
@@ -273,12 +274,13 @@ function renderHistory() {
     return;
   }
   const filtered = getFilteredEntries();
+  if (historyNewEntry) filtered.unshift(historyNewEntry);
   let html = `<table class="history-table"><thead><tr>
     <th>Datum</th><th>Typ</th><th>Dauer</th><th style="width:100px">Aktionen</th>
   </tr></thead><tbody>`;
 
   filtered.forEach((entry) => {
-    const realIdx = entries.indexOf(entry);
+    const realIdx = entry === historyNewEntry ? -1 : entries.indexOf(entry);
     const isEditing = historyEditingIdx === realIdx;
     if (isEditing) {
       html += `<tr class="editing" data-idx="${realIdx}">
@@ -308,10 +310,13 @@ function renderHistory() {
 }
 
 window.historyEdit = function(idx) {
+  historyNewEntry = null;
   historyEditingIdx = idx;
   renderHistory();
+  document.getElementById('edit-date')?.focus();
 };
 window.historyCancel = function() {
+  historyNewEntry = null;
   historyEditingIdx = null;
   renderHistory();
 };
@@ -319,8 +324,11 @@ window.historySave = function(idx) {
   const dateVal = document.getElementById('edit-date').value;
   const typeVal = document.getElementById('edit-type').value;
   const minVal = Number(document.getElementById('edit-minutes').value);
-  if (!dateVal || minVal <= 0) return;
-  entries[idx] = { date: dateVal, type: typeVal, minutes: minVal };
+  if (!dateVal || !Number.isFinite(minVal) || minVal <= 0) return;
+  const entry = { date: dateVal, type: typeVal, minutes: minVal };
+  if (idx === -1) entries.push(entry);
+  else entries[idx] = entry;
+  historyNewEntry = null;
   historyEditingIdx = null;
   sanitizeEntries();
   saveEntries();
@@ -331,19 +339,20 @@ window.historyDelete = function(idx) {
     entries.splice(idx, 1);
     sanitizeEntries();
     saveEntries();
-    historyEditingIdx = null;
+    if (!historyNewEntry) historyEditingIdx = null;
     renderHistory();
   });
 };
 
 function historyAddNew() {
   if (!currentFilePath) { alert('Bitte zuerst eine Datei wählen.'); return; }
-  const today = ymd(new Date());
-  entries.unshift({ date: today, type: 'moderate', minutes: 30 });
-  historyEditingIdx = 0;
-  sanitizeEntries();
-  saveEntries();
+  if (historyNewEntry) { document.getElementById('edit-date')?.focus(); return; }
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  historyNewEntry = { date: ymd(yesterday), type: 'moderate', minutes: 30 };
+  historyEditingIdx = -1;
   renderHistory();
+  document.getElementById('edit-date')?.focus();
 }
 
 /* Confirm dialog */
@@ -859,6 +868,8 @@ async function initApp() {
     if (res.filePath) {
       currentFilePath = res.filePath;
       entries = res.entries || [];
+      historyNewEntry = null;
+      historyEditingIdx = null;
       updateFileStatus(true, res.restored);
       refresh();
     }
@@ -881,6 +892,8 @@ async function chooseFile() {
   if (res.filePath) {
     currentFilePath = res.filePath;
     entries = res.entries || [];
+    historyNewEntry = null;
+    historyEditingIdx = null;
     updateFileStatus(true, false);
     refresh();
   }
@@ -891,6 +904,8 @@ async function createNewFile() {
   if (res.filePath) {
     currentFilePath = res.filePath;
     entries = [];
+    historyNewEntry = null;
+    historyEditingIdx = null;
     updateFileStatus(true, false);
     refresh();
   }
@@ -997,6 +1012,16 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('createFileBtn').addEventListener('click', createNewFile);
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
   document.getElementById('addEntryBtn').addEventListener('click', historyAddNew);
+  historyTableWrap.addEventListener('keydown', event => {
+    if (!event.target.closest('tr.editing') || event.isComposing) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      historySave(historyEditingIdx);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      historyCancel();
+    }
+  });
   document.getElementById('historyDateFrom').addEventListener('change', renderHistory);
   document.getElementById('historyDateTo').addEventListener('change', renderHistory);
   document.getElementById('historyResetFilter').addEventListener('click', () => {
