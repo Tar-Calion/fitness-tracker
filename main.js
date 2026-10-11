@@ -20,9 +20,14 @@ function saveConfig(cfg) {
   } catch (e) { console.warn('Config speichern fehlgeschlagen', e); }
 }
 
-function readEntries(filePath) {
+async function readEntries(filePath) {
+  let text;
   try {
-    const text = fs.readFileSync(filePath, 'utf-8');
+    text = await fs.promises.readFile(filePath, 'utf-8');
+  } catch (e) {
+    return null;
+  }
+  try {
     const json = JSON.parse(text);
     if (Array.isArray(json)) return json;
     return [];
@@ -30,6 +35,24 @@ function readEntries(filePath) {
     return [];
   }
 }
+
+async function restoreInitialState() {
+  let cfg = {};
+  try {
+    cfg = JSON.parse(await fs.promises.readFile(CONFIG_FILE, 'utf-8')) || {};
+  } catch (e) { /* A first launch has no saved config. */ }
+  if (cfg.lastFilePath) {
+    const entries = await readEntries(cfg.lastFilePath);
+    if (entries !== null) {
+      currentFilePath = cfg.lastFilePath;
+      return { filePath: currentFilePath, entries, restored: true, darkMode: !!cfg.darkMode };
+    }
+  }
+  return { filePath: null, entries: [], restored: false, darkMode: !!cfg.darkMode };
+}
+
+// Start disk reads while Electron prepares the window and renderer.
+let initialState = restoreInitialState();
 
 function writeEntries(filePath, entries) {
   try {
@@ -45,6 +68,7 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1368,
     height: 862,
+    backgroundColor: '#0E0E0E',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -53,7 +77,7 @@ async function createWindow() {
     }
   });
 
-  await mainWindow.loadFile('index.html');
+  await mainWindow.loadFile(path.join(__dirname, 'index.html'));
 }
 
 app.whenReady().then(() => {
@@ -67,14 +91,10 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle('init', async () => {
-  const cfg = loadConfig();
-  if (cfg.lastFilePath && fs.existsSync(cfg.lastFilePath)) {
-    currentFilePath = cfg.lastFilePath;
-    const entries = readEntries(currentFilePath);
-    return { filePath: currentFilePath, entries, restored: true, darkMode: !!cfg.darkMode };
-  }
-  return { filePath: null, entries: [], restored: false, darkMode: !!cfg.darkMode };
+ipcMain.handle('init', () => {
+  const state = initialState || restoreInitialState();
+  initialState = null;
+  return state;
 });
 
 ipcMain.handle('choose-file', async () => {
@@ -90,7 +110,7 @@ ipcMain.handle('choose-file', async () => {
   const cfg = loadConfig();
   cfg.lastFilePath = currentFilePath;
   saveConfig(cfg);
-  const entries = readEntries(currentFilePath);
+  const entries = await readEntries(currentFilePath) || [];
   return { filePath: currentFilePath, entries };
 });
 

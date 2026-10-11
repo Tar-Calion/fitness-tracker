@@ -13,6 +13,8 @@ Do not alter the entry shape without migrating existing user files:
 ```
 - Dates are **local** (no UTC). Week starts **Monday**.
 - Always call `sanitizeEntries` before saving.
+- `sanitizeEntries` also rebuilds cached daily/weekly totals. Call it whenever entries
+  are loaded, replaced, added, edited, or deleted; view refreshes reuse those totals.
 
 ## Goal Formula
 - Moderate equivalent = `moderate + hard × 2`

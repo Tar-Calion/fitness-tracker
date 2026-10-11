@@ -49,6 +49,8 @@ npm install
 npm start
 ```
 Windows: run "Start Fitness-Tracker.vbs".
+The Windows launcher starts the local Electron executable directly. It resolves the
+project folder from its own location and runs `npm install` only if Electron is missing.
 
 3. Use the sidebar to navigate between Dashboard, Historie, and Analyse views.
 4. **Dashboard**: Add entries using the quick-add cards (Moderat / Intensiv). For custom minutes, type in the input field and click +. View week overview, progress bar, and 15-week chart.
@@ -56,6 +58,31 @@ Windows: run "Start Fitness-Tracker.vbs".
 6. **Analyse**: Track weekly equivalent minutes across months. Choose a period, compare month averages, inspect weekly changes, and see goal streak/consistency insights. Weeks are assigned to months by the ISO-style Thursday rule, and the current in-progress week is shown but excluded from completed-week goal rates.
 7. **Einstellungen** (sidebar bottom): Load/create data files.
 8. Data is saved automatically on every change.
+
+## Startup performance and checks
+
+Saved configuration and training data load asynchronously while the window is being
+created. Daily and weekly totals are calculated once when data changes and reused
+by the dashboard and analysis; focus, resize, and theme changes do not scan the full
+training history. File and theme controls become available after startup restores
+the saved state. A fresh install also renders the empty dashboard immediately after initialization.
+
+Run `npm test` for startup and aggregation regression checks. Run `npm run check:startup`
+to launch the real app with disposable profiles containing 0, 200, and 10,000 entries;
+the script reports time to an initialized dashboard and the median of five dashboard
+updates. It also verifies adding, editing, deleting, and saving an entry. User configuration
+and training files are not used or changed.
+
+For visual checks at 1200×800, run `node scripts/check-startup.cjs --screenshots`.
+This captures all three views in both themes under `test-results/` and verifies the
+dashboard fits without scrolling. `--npm` measures the additional npm launch overhead;
+`--baseline` uses the tracked source at `HEAD` for a comparison before committing changes.
+
+Local Windows measurements during the startup optimization (10,000 entries): the
+previous source launched through npm reached the dashboard in about 3.7 seconds,
+versus about 0.84 seconds with the direct launcher and optimized source. Dashboard
+updates decreased from about 1,125 ms to 5 ms. These are local measurements with
+synthetic data and warm filesystem caches, not cold-boot guarantees.
 
 ## Folder structure (key files)
 - `main.js` – Electron main process, window creation & file/config IPC

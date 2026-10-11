@@ -1,7 +1,5 @@
-' Set this to your project folder
-projectDir = "C:\Git\fitness-tracker"
-
 Set fso = CreateObject("Scripting.FileSystemObject")
+projectDir = fso.GetParentFolderName(WScript.ScriptFullName)
 If Not fso.FileExists(projectDir & "\package.json") Then
   MsgBox "Project folder not found: " & projectDir, 16, "Fitness Tracker"
   WScript.Quit 1
@@ -10,10 +8,15 @@ End If
 Set shell = CreateObject("WScript.Shell")
 shell.CurrentDirectory = projectDir
 
-If Not fso.FolderExists(projectDir & "\node_modules") Then
-  shell.Run "cmd /c npm install", 0, True   ' 0 = hidden, True = wait
+electronPath = projectDir & "\node_modules\electron\dist\electron.exe"
+If Not fso.FileExists(electronPath) Then
+  installResult = shell.Run("cmd /c npm install", 0, True)
+  If installResult <> 0 Or Not fso.FileExists(electronPath) Then
+    MsgBox "Installation fehlgeschlagen. Bitte npm install im Projektordner ausfuehren.", 16, "Fitness Tracker"
+    WScript.Quit 1
+  End If
 End If
 
-' Start without waiting; Electron window appears
-shell.Run "cmd /c npm start", 0, False
+' Launch Electron directly, without the npm/Node/cmd startup chain.
+shell.Run Chr(34) & electronPath & Chr(34) & " " & Chr(34) & projectDir & Chr(34), 0, False
 WScript.Quit 0

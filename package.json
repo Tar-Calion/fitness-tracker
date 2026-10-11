@@ -8,6 +8,8 @@
   "scripts": {
     "start": "electron .",
     "start:dev": "electron . --enable-logging",
+    "test": "node --test tests/*.test.cjs",
+    "check:startup": "node scripts/check-startup.cjs",
     "package-info": "echo Konsolen-App, Packaging optional"
   },
   "devDependencies": {

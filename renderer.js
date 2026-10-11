@@ -3,6 +3,8 @@
 let entries = [];
 let currentFilePath = null;
 let darkMode = true; // dark by default for Kinetic Volt
+let dailyTotals = new Map();
+let weeklyTotals = new Map();
 
 /* ============================== Date Helpers ============================== */
 function ymd(date) {
@@ -23,15 +25,25 @@ function startOfWeek(d) {
   date.setHours(0, 0, 0, 0);
   return date;
 }
-function isInSameWeek(dateStr, refDate) {
-  return startOfWeek(parseDate(dateStr)).getTime() === startOfWeek(refDate).getTime();
-}
 function sanitizeEntries() {
   entries = (entries || []).map(e => ({
     date: String(e.date || ''),
     type: (e.type === 'hard' ? 'hard' : 'moderate'),
     minutes: Number(e.minutes) || 0
   })).filter(e => e.date && e.minutes > 0);
+  dailyTotals = new Map();
+  weeklyTotals = new Map();
+  for (const entry of entries) {
+    const weekKey = ymd(startOfWeek(parseDate(entry.date)));
+    for (const [totals, key] of [[dailyTotals, entry.date], [weeklyTotals, weekKey]]) {
+      let bucket = totals.get(key);
+      if (!bucket) {
+        bucket = { moderate: 0, hard: 0 };
+        totals.set(key, bucket);
+      }
+      bucket[entry.type] += entry.minutes;
+    }
+  }
 }
 function formatDateShort(d) {
   return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -91,9 +103,7 @@ function showWeek() {
     d.setDate(monday.getDate() + i);
     const ds = ymd(d);
     const dayName = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i];
-    const dayEntries = entries.filter(e => e.date === ds);
-    const hard = dayEntries.filter(e => e.type === 'hard').reduce((s, e) => s + e.minutes, 0);
-    const mod = dayEntries.filter(e => e.type === 'moderate').reduce((s, e) => s + e.minutes, 0);
+    const { hard = 0, moderate: mod = 0 } = dailyTotals.get(ds) || {};
     const isToday = ds === todayStr;
     html += `<div class="day-card${isToday ? ' today' : ''}">
       <div class="day-card-name">${dayName}</div>
@@ -107,8 +117,7 @@ function showWeek() {
   weekViewEl.innerHTML = html;
 
   // Progress
-  const weekHard = entries.filter(e => isInSameWeek(e.date, today) && e.type === 'hard').reduce((s, e) => s + e.minutes, 0);
-  const weekMod = entries.filter(e => isInSameWeek(e.date, today) && e.type === 'moderate').reduce((s, e) => s + e.minutes, 0);
+  const { hard: weekHard = 0, moderate: weekMod = 0 } = weeklyTotals.get(ymd(monday)) || {};
   const totalEq = weekMod + weekHard * 2;
   const percent = (totalEq / 150) * 100;
   const capped = Math.max(0, Math.min(percent, 100));
@@ -148,8 +157,7 @@ function drawBarChart() {
     const ref = new Date(today);
     ref.setDate(ref.getDate() - 7 * w);
     const monday = startOfWeek(ref);
-    const hard = entries.filter(e => isInSameWeek(e.date, ref) && e.type === 'hard').reduce((s, e) => s + e.minutes, 0);
-    const mod = entries.filter(e => isInSameWeek(e.date, ref) && e.type === 'moderate').reduce((s, e) => s + e.minutes, 0);
+    const { hard = 0, moderate: mod = 0 } = weeklyTotals.get(ymd(monday)) || {};
     weeksData.push({ monday, eq: mod + hard * 2 });
   }
 
@@ -449,15 +457,7 @@ function getAnalysePeriod() {
 }
 
 function createWeekBuckets() {
-  const buckets = {};
-  entries.forEach(entry => {
-    const weekStart = startOfWeek(parseDate(entry.date));
-    const key = ymd(weekStart);
-    if (!buckets[key]) buckets[key] = { moderate: 0, hard: 0 };
-    if (entry.type === 'hard') buckets[key].hard += entry.minutes;
-    else buckets[key].moderate += entry.minutes;
-  });
-  return buckets;
+  return weeklyTotals;
 }
 
 function summarizeMonth(month) {
@@ -491,7 +491,7 @@ function buildAnalyseData() {
     if (monthAnchor < period.start || monthAnchor > period.endMarker) continue;
 
     const key = ymd(cursor);
-    const bucket = buckets[key] || { moderate: 0, hard: 0 };
+    const bucket = buckets.get(key) || { moderate: 0, hard: 0 };
     const eq = bucket.moderate + bucket.hard * 2;
     const week = {
       key,
@@ -832,7 +832,6 @@ function drawWeeklyTrendChart(data = buildAnalyseData()) {
 
 /* ============================== Refresh ============================== */
 window.refresh = function refresh() {
-  sanitizeEntries();
   updateHeaderWeek();
   if (currentView === 'dashboard') { showWeek(); drawBarChart(); }
   if (currentView === 'history') renderHistory();
@@ -868,13 +867,17 @@ async function initApp() {
     if (res.filePath) {
       currentFilePath = res.filePath;
       entries = res.entries || [];
+      sanitizeEntries();
       historyNewEntry = null;
       historyEditingIdx = null;
       updateFileStatus(true, res.restored);
-      refresh();
     }
   } catch (e) {
     console.warn('Init fehlgeschlagen', e);
+  } finally {
+    refresh();
+    document.querySelectorAll('[data-startup-control]').forEach(button => { button.disabled = false; });
+    window.addEventListener('focus', refresh);
   }
 }
 
@@ -892,6 +895,7 @@ async function chooseFile() {
   if (res.filePath) {
     currentFilePath = res.filePath;
     entries = res.entries || [];
+    sanitizeEntries();
     historyNewEntry = null;
     historyEditingIdx = null;
     updateFileStatus(true, false);
@@ -904,6 +908,7 @@ async function createNewFile() {
   if (res.filePath) {
     currentFilePath = res.filePath;
     entries = [];
+    sanitizeEntries();
     historyNewEntry = null;
     historyEditingIdx = null;
     updateFileStatus(true, false);
@@ -1039,9 +1044,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateThemeToggleIcon();
   updateHeaderWeek();
+  document.querySelectorAll('[data-startup-control]').forEach(button => { button.disabled = true; });
   initApp();
   scheduleDailyRefresh();
-  window.addEventListener('focus', refresh);
   window.addEventListener('resize', () => {
     if (currentView === 'dashboard') drawBarChart();
     if (currentView === 'analyse') drawWeeklyTrendChart();
