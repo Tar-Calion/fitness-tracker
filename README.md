@@ -13,6 +13,7 @@ A local desktop app (Windows and other platforms) to record training minutes wit
 - Stored in a user-chosen JSON/TXT file (an array of entries)
 - Remembers the last chosen file (in the app config under the user profile)
 - Toggleable Dark/Light Mode — setting persists across restarts
+- Custom lime-green dumbbell icon for the app window and taskbar
 - Automatic refresh shortly after midnight
 
 ## Screenshots
@@ -53,7 +54,7 @@ The Windows launcher starts the local Electron executable directly. It resolves 
 project folder from its own location and runs `npm install` only if Electron is missing.
 
 3. Use the sidebar to navigate between Dashboard, Historie, and Analyse views.
-4. **Dashboard**: Add entries using the quick-add cards (Moderat / Intensiv). For custom minutes, type in the input field and click +. View week overview, progress bar, and 15-week chart.
+4. **Dashboard**: Add entries using the quick-add cards (Moderat / Intensiv). For custom minutes, type in the input field and press Enter or click +. The input clears after submission. View week overview, progress bar, and 15-week chart.
 5. **Historie**: View all entries sorted by date. Use filters and sorting. Click ✏️ to edit inline, 🗑️ to delete, or "Neuer Eintrag" to add.
 6. **Analyse**: Track weekly equivalent minutes across months. Choose a period, compare month averages, inspect weekly changes, and see goal streak/consistency insights. Weeks are assigned to months by the ISO-style Thursday rule, and the current in-progress week is shown but excluded from completed-week goal rates.
 7. **Einstellungen** (sidebar bottom): Load/create data files.

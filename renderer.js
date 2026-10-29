@@ -966,10 +966,16 @@ function setupQuickButtons() {
     addBtn.className = 'add-icon-btn';
     addBtn.innerHTML = '+';
     addBtn.title = `Eigene Minuten ${label} hinzufügen`;
-    addBtn.addEventListener('click', () => {
-      const v = Number(document.getElementById(`custom-${type}`).value);
+    const submitCustomMinutes = () => {
+      const v = Number(inp.value);
       addEntry(type, v);
-      document.getElementById(`custom-${type}`).value = '';
+      inp.value = '';
+    };
+    addBtn.addEventListener('click', submitCustomMinutes);
+    inp.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || event.isComposing || event.repeat) return;
+      event.preventDefault();
+      submitCustomMinutes();
     });
     customRow.appendChild(addBtn);
     card.appendChild(customRow);

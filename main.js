@@ -69,6 +69,7 @@ async function createWindow() {
     width: 1368,
     height: 862,
     backgroundColor: '#0E0E0E',
+    icon: path.join(__dirname, 'assets', 'fitness-tracker.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
